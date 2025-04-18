@@ -38,6 +38,7 @@ class Scanner(val source: String) {
             '/' -> if(match('/')) {
                 while (peek() != '\n' && !isAtEnd()) advance()
             } else addToken(SLASH)
+            ' ', '\r', '\t' -> {}
             else -> error(line, "Unexpected character: $c")
         }
     }
