@@ -41,8 +41,24 @@ class Scanner(val source: String) {
             ' ', '\r', '\t' -> {}
             '\n' -> line++
             '"' -> string()
-            else -> syntaxError(line, "Unexpected character: $c")
+            else -> if(c.isDigit()) {
+                number()
+            } else {
+                syntaxError(line, "Unexpected character: $c")
+            }
         }
+    }
+
+    private fun number() {
+        while (peek()?.isDigit() == true) advance()
+
+        if (peek() == '.' && peekNext()?.isDigit() == true) {
+            advance()
+
+            while (peek()?.isDigit() == true) advance()
+        }
+
+        addToken(NUMBER, source.substring(start, current).toDouble())
     }
 
     private fun string() {
@@ -78,6 +94,11 @@ class Scanner(val source: String) {
     private fun peek(): Char? {
         if (isAtEnd()) return null
         return source.elementAt(current)
+    }
+
+    private fun peekNext(): Char? {
+        if (current + 1 >= source.length) return null
+        return source.elementAt(current + 1)
     }
 
     private fun addToken(type: TokenType, literal: Any? = null) {
