@@ -1,6 +1,5 @@
 import model.Token
 import java.io.File
-import java.util.function.ToLongFunction
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {

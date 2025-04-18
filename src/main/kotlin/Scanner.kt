@@ -31,12 +31,21 @@ class Scanner(val source: String) {
             '-' -> addToken(MINUS)
             ';' -> addToken(SEMICOLON)
             '*' -> addToken(STAR)
+            '=' -> addToken(if(match('=')) EQUAL_EQUAL else EQUAL)
             else -> error(line, "Unexpected character: $c")
         }
     }
 
     private fun advance(): Char {
         return source.elementAt(current++)
+    }
+
+    private fun match(expected: Char): Boolean {
+        if(isAtEnd()) return false
+        if (source.elementAt(current) != expected) return false
+
+        current++
+        return true
     }
 
     private fun addToken(type: TokenType, literal: Any? = null) {
