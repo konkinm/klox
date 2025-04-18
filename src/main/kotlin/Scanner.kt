@@ -31,6 +31,7 @@ class Scanner(val source: String) {
             '-' -> addToken(MINUS)
             ';' -> addToken(SEMICOLON)
             '*' -> addToken(STAR)
+            '!' -> addToken(if(match('=')) BANG_EQUAL else BANG)
             '=' -> addToken(if(match('=')) EQUAL_EQUAL else EQUAL)
             else -> error(line, "Unexpected character: $c")
         }
