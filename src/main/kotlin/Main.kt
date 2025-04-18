@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
 
     runFile(fileContents)
 
-    if (hadError) exitProcess(65)
+    if (hadError) exitProcess(65) // exit with syntax error
 }
 
 fun runFile(source: String) {
@@ -32,7 +32,7 @@ fun runFile(source: String) {
     }
 }
 
-fun error(line: Int, message: String) {
+fun syntaxError(line: Int, message: String) {
     report(line, "", message)
 }
 

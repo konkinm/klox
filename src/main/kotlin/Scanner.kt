@@ -41,7 +41,7 @@ class Scanner(val source: String) {
             ' ', '\r', '\t' -> {}
             '\n' -> line++
             '"' -> string()
-            else -> error(line, "Unexpected character: $c")
+            else -> syntaxError(line, "Unexpected character: $c")
         }
     }
 
@@ -51,7 +51,10 @@ class Scanner(val source: String) {
             advance()
         }
 
-        if (isAtEnd()) error(line, "Unterminated string")
+        if (isAtEnd()) {
+            syntaxError(line, "Unterminated string.")
+            return
+        }
 
         advance() // the closing "
 
