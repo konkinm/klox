@@ -33,7 +33,7 @@ fun defineAst(outputDir: String, baseName: String, types: Map<String, String>) {
 
     // The base accept() method.
     writer.println()
-    writer.println("    abstract fun <R> accept(visitor: Visitor<R>): R")
+    writer.println("    abstract fun <R> accept(visitor: Visitor<R>): R?")
     writer.println()
 
     for (type in types) {
@@ -51,7 +51,7 @@ fun defineVisitor(writer: PrintWriter, baseName: String, types: Map<String, Stri
 
     for (type in types) {
         val typeName: String = type.key
-        writer.println("        fun visit$typeName$baseName(${baseName.lowercase(getDefault())}: $typeName): R")
+        writer.println("        fun visit$typeName$baseName(${baseName.lowercase(getDefault())}: $typeName): R?")
     }
 
     writer.println("  }")
@@ -62,7 +62,7 @@ fun defineType(writer: PrintWriter, baseName: String, className: String, fieldLi
 
     // Visitor pattern.
     writer.println()
-    writer.println("        override fun <R> accept(visitor: Visitor<R>) : R {")
+    writer.println("        override fun <R> accept(visitor: Visitor<R>) : R? {")
     writer.println("          return visitor.visit$className$baseName(this)")
     writer.println("        }")
 

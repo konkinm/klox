@@ -18,6 +18,7 @@ fun main(args: Array<String>) {
     when (command) {
         "tokenize" -> tokenizeFile(fileContents)
         "parse" -> parseFile(fileContents)
+        "evaluate" -> evaluateFile(fileContents)
         else -> {
             System.err.println("Unknown command: ${command}")
             exitProcess(1)
@@ -25,6 +26,7 @@ fun main(args: Array<String>) {
     }
 
     if (hadError) exitProcess(65) // exit with syntax error
+    if (hadRuntimeError) exitProcess(70) // exit with runtime error
 }
 
 fun tokenizeFile(source: String) {
@@ -36,12 +38,22 @@ fun tokenizeFile(source: String) {
     }
 }
 
+
 fun parseFile(source: String) {
     val scanner = Scanner(source)
     val tokens: List<Token> = scanner.scanTokens()
     val expression = Parser(tokens).parse()
 
     println(AstPrinter().print(expression))
+}
+
+fun evaluateFile(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+    val expression = Parser(tokens).parse()
+    val interpreter = Interpreter()
+
+    interpreter.interpret(expression)
 }
 
 fun syntaxError(line: Int, message: String) {
@@ -63,4 +75,10 @@ fun error(token: Token, message: String) {
     }
 }
 
+fun runtimeError(error: RuntimeError) {
+    System.err.println(error.message + "\n[line " + error.token.line + "]")
+    hadRuntimeError = true
+}
+
 var hadError: Boolean = false
+var hadRuntimeError: Boolean = false
