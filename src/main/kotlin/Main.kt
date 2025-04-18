@@ -1,12 +1,11 @@
+import model.Token
 import java.io.File
+import java.util.function.ToLongFunction
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    System.err.println("Logs from your program will appear here!")
-
     if (args.size < 2) {
-        System.err.println("Usage: ./your_program.sh tokenize <filename>")
+        System.err.println("Usage: ./your_program.cmd tokenize <filename>")
         exitProcess(1)
     }
 
@@ -20,9 +19,29 @@ fun main(args: Array<String>) {
 
     val fileContents = File(filename).readText()
 
-     if (fileContents.isNotEmpty()) {
-         throw NotImplementedError("Scanner not implemented")
-     } else {
-         println("EOF  null") // Placeholder, remove this line when implementing the scanner
-     }
+    runFile(fileContents)
+
+    if (hadError) exitProcess(1)
 }
+
+fun runFile(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+
+    for (token in tokens) {
+        println(token)
+    }
+}
+
+fun error(line: Int, message: String) {
+    report(line, "", message)
+}
+
+fun report(line: Int, where: String, message: String) {
+    System.err.println(
+        "[line $line] Error $where: $message"
+    )
+    hadError = true
+}
+
+var hadError: Boolean = false
