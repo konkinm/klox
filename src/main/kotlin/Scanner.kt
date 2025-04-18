@@ -23,6 +23,8 @@ class Scanner(val source: String) {
         when (c) {
             '(' -> addToken(LEFT_PAREN)
             ')' -> addToken(RIGHT_PAREN)
+            '{' -> addToken(LEFT_BRACE)
+            '}' -> addToken(RIGHT_BRACE)
             else -> error(line, "Unexpected character: $c")
         }
     }
