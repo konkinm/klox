@@ -25,6 +25,12 @@ class Scanner(val source: String) {
             ')' -> addToken(RIGHT_PAREN)
             '{' -> addToken(LEFT_BRACE)
             '}' -> addToken(RIGHT_BRACE)
+            ',' -> addToken(COMMA)
+            '.' -> addToken(DOT)
+            '+' -> addToken(PLUS)
+            '-' -> addToken(MINUS)
+            ';' -> addToken(SEMICOLON)
+            '*' -> addToken(STAR)
             else -> error(line, "Unexpected character: $c")
         }
     }
