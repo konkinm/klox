@@ -40,8 +40,24 @@ class Scanner(val source: String) {
             } else addToken(SLASH)
             ' ', '\r', '\t' -> {}
             '\n' -> line++
+            '"' -> string()
             else -> error(line, "Unexpected character: $c")
         }
+    }
+
+    private fun string() {
+        while (peek() != '"' && !isAtEnd()) {
+            if (peek() == '\n') line++
+            advance()
+        }
+
+        if (isAtEnd()) error(line, "Unterminated string")
+
+        advance() // the closing "
+
+        // trim quotes
+        val value = source.substring(start + 1, current - 1)
+        addToken(STRING, value)
     }
 
     private fun advance(): Char {
