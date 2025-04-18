@@ -1,4 +1,5 @@
 import model.Expr
+import model.Stmt
 import model.Token
 import model.TokenType.BANG
 import model.TokenType.BANG_EQUAL
@@ -12,14 +13,19 @@ import model.TokenType.PLUS
 import model.TokenType.SLASH
 import model.TokenType.STAR
 
-class Interpreter: Expr.Visitor<Any> {
-    fun interpret(expression: Expr?) {
+class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
+    fun interpret(statements: List<Stmt>) {
         try {
-            val value = evaluate(expression)
-            println(stringify(value))
+            for (statement in statements) {
+                execute(statement)
+            }
         } catch (error: RuntimeError) {
             runtimeError(error)
         }
+    }
+
+    private fun execute(statement: Stmt) {
+        statement.accept(this)
     }
 
     private fun stringify(value: Any?): String {
@@ -141,6 +147,15 @@ class Interpreter: Expr.Visitor<Any> {
 
     private fun evaluate(expression: Expr?): Any? {
         return expression?.accept(this)
+    }
+
+    override fun visitExpressionStmt(stmt: Stmt.Expression) {
+        evaluate(stmt.expression)
+    }
+
+    override fun visitPrintStmt(stmt: Stmt.Print) {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
     }
 }
 

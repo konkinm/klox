@@ -11,6 +11,11 @@ private val exprTypes = mapOf(
     "Unary" to "val operator: Token?, val right: Expr?"
 )
 
+private val stmtTypes = mapOf(
+    "Expression" to "val expression: Expr?",
+    "Print" to "val expression: Expr?",
+)
+
 fun main(args: Array<String>) {
     if (args.size != 1) {
         System.err.println("Usage: generate_ast <output directory>")
@@ -19,6 +24,7 @@ fun main(args: Array<String>) {
     val outputDir: String = args[0]
 
     defineAst(outputDir, "Expr", exprTypes)
+    defineAst(outputDir, "Stmt", stmtTypes)
 }
 
 fun defineAst(outputDir: String, baseName: String, types: Map<String, String>) {

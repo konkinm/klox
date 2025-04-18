@@ -1,12 +1,11 @@
 import model.Token
 import model.TokenType
-import tool.AstPrinter
 import java.io.File
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     if (args.size < 2) {
-        System.err.println("Usage: ./your_program.cmd [tokenize|parse] <filename>")
+        System.err.println("Usage: ./your_program.cmd run <filename>")
         exitProcess(1)
     }
 
@@ -16,9 +15,7 @@ fun main(args: Array<String>) {
     val fileContents = File(filename).readText()
 
     when (command) {
-        "tokenize" -> tokenizeFile(fileContents)
-        "parse" -> parseFile(fileContents)
-        "evaluate" -> evaluateFile(fileContents)
+        "run" -> runProgram(fileContents)
         else -> {
             System.err.println("Unknown command: ${command}")
             exitProcess(1)
@@ -29,31 +26,11 @@ fun main(args: Array<String>) {
     if (hadRuntimeError) exitProcess(70) // exit with runtime error
 }
 
-fun tokenizeFile(source: String) {
+fun runProgram(source: String) {
     val scanner = Scanner(source)
     val tokens: List<Token> = scanner.scanTokens()
-
-    for (token in tokens) {
-        println(token)
-    }
-}
-
-
-fun parseFile(source: String) {
-    val scanner = Scanner(source)
-    val tokens: List<Token> = scanner.scanTokens()
-    val expression = Parser(tokens).parse()
-
-    println(AstPrinter().print(expression))
-}
-
-fun evaluateFile(source: String) {
-    val scanner = Scanner(source)
-    val tokens: List<Token> = scanner.scanTokens()
-    val expression = Parser(tokens).parse()
-    val interpreter = Interpreter()
-
-    interpreter.interpret(expression)
+    val statements = Parser(tokens).parse()
+    Interpreter().interpret(statements)
 }
 
 fun syntaxError(line: Int, message: String) {
