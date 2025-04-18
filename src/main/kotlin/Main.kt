@@ -1,5 +1,6 @@
 import model.Token
 import model.TokenType
+import tool.AstPrinter
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -16,8 +17,11 @@ fun main(args: Array<String>) {
 
     when (command) {
         "run" -> runProgram(fileContents)
+        "evaluate" -> evalProgram(fileContents)
+        "parse" -> parseProgram(fileContents)
+        "tokenize" -> tokenizeProgram(fileContents)
         else -> {
-            System.err.println("Unknown command: ${command}")
+            System.err.println("Unknown command: $command")
             exitProcess(1)
         }
     }
@@ -32,6 +36,30 @@ fun runProgram(source: String) {
     val statements = Parser(tokens).parse()
     Interpreter().interpret(statements)
 }
+
+fun evalProgram(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+    val expression = Parser(tokens).parseSingleExpression()
+    Interpreter().interpret(expression)
+}
+
+fun parseProgram(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+    val expression = Parser(tokens).parseSingleExpression()
+
+    println(AstPrinter().print(expression))
+}
+fun tokenizeProgram(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+
+    for (token in tokens) {
+        println(token)
+    }
+}
+
 
 fun syntaxError(line: Int, message: String) {
     report(line, "", message)

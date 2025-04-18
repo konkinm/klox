@@ -24,6 +24,15 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         }
     }
 
+    fun interpret(expression: Expr?) {
+        try {
+            val value = evaluate(expression)
+            println(stringify(value))
+        } catch (error: RuntimeError) {
+            runtimeError(error)
+        }
+    }
+
     private fun execute(statement: Stmt) {
         statement.accept(this)
     }

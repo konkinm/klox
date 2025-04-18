@@ -27,11 +27,24 @@ class Parser(val tokens: List<Token>) {
 
     fun parse(): List<Stmt> {
         val statements = mutableListOf<Stmt>()
-        while (!isAtEnd()) {
-            statements.add(statement())
-        }
+
+        try {
+            while (!isAtEnd()) {
+                statements.add(statement())
+            }
+        } catch (_: ParseError) {}
+
         return statements
     }
+
+    fun parseSingleExpression(): Expr? {
+        return try {
+            expression()
+        } catch (_: ParseError) {
+            null
+        }
+    }
+
 
     private fun statement(): Stmt {
         if (match(TokenType.PRINT)) return printStatement()
