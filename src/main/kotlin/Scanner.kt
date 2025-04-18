@@ -33,6 +33,8 @@ class Scanner(val source: String) {
             '*' -> addToken(STAR)
             '!' -> addToken(if(match('=')) BANG_EQUAL else BANG)
             '=' -> addToken(if(match('=')) EQUAL_EQUAL else EQUAL)
+            '>' -> addToken(if(match('=')) GREATER_EQUAL else GREATER)
+            '<' -> addToken(if(match('=')) LESS_EQUAL else LESS)
             else -> error(line, "Unexpected character: $c")
         }
     }
