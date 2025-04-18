@@ -2,6 +2,25 @@ import model.Token
 import model.TokenType
 import model.TokenType.*
 
+private val keywords: Map<String, TokenType> = mapOf(
+    "and" to AND,
+    "class" to CLASS,
+    "else" to ELSE,
+    "false" to FALSE,
+    "for" to FOR,
+    "fun" to FUN,
+    "if" to IF,
+    "nil" to NIL,
+    "or" to OR,
+    "print" to PRINT,
+    "return" to RETURN,
+    "super" to SUPER,
+    "this" to THIS,
+    "true" to TRUE,
+    "var" to VAR,
+    "while" to WHILE
+    )
+
 class Scanner(val source: String) {
     private val tokens: MutableList<Token> = mutableListOf()
     private var start: Int = 0
@@ -72,7 +91,9 @@ class Scanner(val source: String) {
     private fun identifier() {
         while (isAlphaNumeric(peek())) advance()
 
-        addToken(IDENTIFIER)
+        val text: String = source.substring(start, current)
+        val type: TokenType? = keywords.get(text)
+        if (type == null) addToken(IDENTIFIER) else addToken(type)
     }
 
     private fun number() {
