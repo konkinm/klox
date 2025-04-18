@@ -35,6 +35,9 @@ class Scanner(val source: String) {
             '=' -> addToken(if(match('=')) EQUAL_EQUAL else EQUAL)
             '>' -> addToken(if(match('=')) GREATER_EQUAL else GREATER)
             '<' -> addToken(if(match('=')) LESS_EQUAL else LESS)
+            '/' -> if(match('/')) {
+                while (peek() != '\n' && !isAtEnd()) advance()
+            } else addToken(SLASH)
             else -> error(line, "Unexpected character: $c")
         }
     }
@@ -49,6 +52,11 @@ class Scanner(val source: String) {
 
         current++
         return true
+    }
+
+    private fun peek(): Char? {
+        if (isAtEnd()) return null
+        return source.elementAt(current)
     }
 
     private fun addToken(type: TokenType, literal: Any? = null) {
