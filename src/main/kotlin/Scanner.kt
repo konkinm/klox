@@ -41,16 +41,42 @@ class Scanner(val source: String) {
             ' ', '\r', '\t' -> {}
             '\n' -> line++
             '"' -> string()
-            else -> if(c.isDigit()) {
+            else -> if(isDigit(c)) {
                 number()
+            } else if (isAlpha(c)) {
+                identifier()
             } else {
                 syntaxError(line, "Unexpected character: $c")
             }
         }
     }
 
+    private fun isDigit(c: Char?): Boolean {
+        return if (c != null) {
+            return c >= '0' && c <= '9'
+        } else false
+    }
+
+    private fun isAlpha(c: Char?): Boolean {
+        return if (c != null) {
+            (c >= 'a' && c <= 'z') ||
+                    (c >= 'A' && c <= 'Z') ||
+                    c == '_'
+        } else false
+    }
+
+    private fun isAlphaNumeric(c: Char?): Boolean {
+        return isAlpha(c) || isDigit(c)
+    }
+
+    private fun identifier() {
+        while (isAlphaNumeric(peek())) advance()
+
+        addToken(IDENTIFIER)
+    }
+
     private fun number() {
-        while (peek()?.isDigit() == true) advance()
+        while (isDigit(peek())) advance()
 
         if (peek() == '.' && peekNext()?.isDigit() == true) {
             advance()
