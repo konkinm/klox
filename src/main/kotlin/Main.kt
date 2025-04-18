@@ -1,4 +1,6 @@
 import model.Token
+import model.TokenType
+import tool.AstPrinter
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -34,8 +36,12 @@ fun tokenizeFile(source: String) {
     }
 }
 
-fun parseFile(fileContents: String): String {
-    TODO("Not implemented")
+fun parseFile(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+    val expression = Parser(tokens).parse()
+
+    println(AstPrinter().print(expression))
 }
 
 fun syntaxError(line: Int, message: String) {
@@ -44,9 +50,17 @@ fun syntaxError(line: Int, message: String) {
 
 fun report(line: Int, where: String, message: String) {
     System.err.println(
-        "[line $line] Error: $message"
+        "[line $line] Error$where: $message"
     )
     hadError = true
+}
+
+fun error(token: Token, message: String) {
+    if (token.type == TokenType.EOF) {
+        report(token.line, " at end", message)
+    } else {
+        report(token.line, " at '" + token.lexeme + "'", message)
+    }
 }
 
 var hadError: Boolean = false

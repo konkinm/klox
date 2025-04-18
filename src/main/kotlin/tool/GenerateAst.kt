@@ -5,10 +5,10 @@ import java.util.Locale.getDefault
 import kotlin.system.exitProcess
 
 private val exprTypes = mapOf(
-    "Binary" to "val left: Expr, val operator: Token, val right: Expr",
-    "Grouping" to "val expression: Expr",
+    "Binary" to "val left: Expr?, val operator: Token?, val right: Expr?",
+    "Grouping" to "val expression: Expr?",
     "Literal" to "val value: Any?",
-    "Unary" to "val operator: Token, val right: Expr"
+    "Unary" to "val operator: Token?, val right: Expr?"
 )
 
 fun main(args: Array<String>) {
