@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
 
     runFile(fileContents)
 
-    if (hadError) exitProcess(1)
+    if (hadError) exitProcess(65)
 }
 
 fun runFile(source: String) {
@@ -39,7 +39,7 @@ fun error(line: Int, message: String) {
 
 fun report(line: Int, where: String, message: String) {
     System.err.println(
-        "[line $line] Error $where: $message"
+        "[line $line] Error: $message"
     )
     hadError = true
 }
