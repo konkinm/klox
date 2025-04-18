@@ -39,6 +39,7 @@ class Scanner(val source: String) {
                 while (peek() != '\n' && !isAtEnd()) advance()
             } else addToken(SLASH)
             ' ', '\r', '\t' -> {}
+            '\n' -> line++
             else -> error(line, "Unexpected character: $c")
         }
     }
