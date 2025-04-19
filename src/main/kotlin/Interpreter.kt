@@ -224,6 +224,10 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
 
         environment.define(stmt.name?.lexeme, value)
     }
+
+    override fun visitWhileStmt(stmt: Stmt.While) {
+        while (isTruthy(evaluate(stmt.condition))) execute(stmt.body)
+    }
 }
 
 class RuntimeError(operator: Token?, message: String): RuntimeException(message) {

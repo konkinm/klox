@@ -22,6 +22,7 @@ private val stmtTypes = mapOf(
     "If" to "val condition: Expr?, val thenBranch: Stmt?, val elseBranch: Stmt?",
     "Print" to "val expression: Expr?",
     "Var" to "val name: Token?, val initializer: Expr?",
+    "While" to "val condition: Expr?, val body: Stmt?",
 )
 
 fun main(args: Array<String>) {
