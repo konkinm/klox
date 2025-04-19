@@ -14,7 +14,9 @@ import model.TokenType.SLASH
 import model.TokenType.STAR
 
 class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
-    fun interpret(statements: List<Stmt>) {
+    private val environment = Environment()
+
+    fun interpret(statements: List<Stmt?>) {
         try {
             for (statement in statements) {
                 execute(statement)
@@ -33,8 +35,8 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         }
     }
 
-    private fun execute(statement: Stmt) {
-        statement.accept(this)
+    private fun execute(statement: Stmt?) {
+        statement?.accept(this)
     }
 
     private fun stringify(value: Any?): String {
@@ -53,6 +55,13 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         if (left == null) return false
 
         return left == right
+    }
+
+    override fun visitAssignExpr(expr: Expr.Assign): Any? {
+        val value = evaluate(expr.value)
+
+        environment.assign(expr.name, value)
+        return value
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): Any? {
@@ -134,6 +143,10 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         return null
     }
 
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        return environment.getByTokenLexeme(expr.name)
+    }
+
     private fun checkNumberOperand(operator: Token, operand: Any?) {
         if (operand is Double) return
         throw RuntimeError(operator, "Operand must be a number")
@@ -166,8 +179,15 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         val value = evaluate(stmt.expression)
         println(stringify(value))
     }
+
+    override fun visitVarStmt(stmt: Stmt.Var) {
+        var value: Any? = null
+        if (stmt.initializer != null) value = evaluate(stmt.initializer)
+
+        environment.define(stmt.name?.lexeme, value)
+    }
 }
 
-class RuntimeError(operator: Token, message: String): RuntimeException(message) {
+class RuntimeError(operator: Token?, message: String): RuntimeException(message) {
     val token = operator
 }

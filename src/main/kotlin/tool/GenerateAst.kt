@@ -1,19 +1,24 @@
 package tool
 
 import java.io.PrintWriter
+import java.nio.file.Files
 import java.util.Locale.getDefault
+import kotlin.io.path.Path
 import kotlin.system.exitProcess
 
 private val exprTypes = mapOf(
+    "Assign" to "val name: Token?, val value: Expr?",
     "Binary" to "val left: Expr?, val operator: Token?, val right: Expr?",
     "Grouping" to "val expression: Expr?",
     "Literal" to "val value: Any?",
-    "Unary" to "val operator: Token?, val right: Expr?"
+    "Unary" to "val operator: Token?, val right: Expr?",
+    "Variable" to "val name: Token?",
 )
 
 private val stmtTypes = mapOf(
     "Expression" to "val expression: Expr?",
     "Print" to "val expression: Expr?",
+    "Var" to "val name: Token?, val initializer: Expr?",
 )
 
 fun main(args: Array<String>) {
@@ -28,8 +33,12 @@ fun main(args: Array<String>) {
 }
 
 fun defineAst(outputDir: String, baseName: String, types: Map<String, String>) {
-    val path = "$outputDir/${baseName}_.kt"
-    val writer = PrintWriter(path, "UTF-8")
+    val name = "$outputDir/${baseName}.kt"
+    val path = Path(name)
+    if (Files.exists(Path(name))) {
+        Files.delete(path)
+    }
+    val writer = PrintWriter(name, "UTF-8")
 
     writer.println("package model")
     writer.println()

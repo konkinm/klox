@@ -72,16 +72,18 @@ fun report(line: Int, where: String, message: String) {
     hadError = true
 }
 
-fun error(token: Token, message: String) {
-    if (token.type == TokenType.EOF) {
+fun error(token: Token?, message: String) {
+    if (token?.type == TokenType.EOF) {
         report(token.line, " at end", message)
     } else {
-        report(token.line, " at '" + token.lexeme + "'", message)
+        if (token != null)
+            report(token.line, " at '" + token.lexeme + "'", message)
+        else System.err.println("Token is null")
     }
 }
 
 fun runtimeError(error: RuntimeError) {
-    System.err.println(error.message + "\n[line " + error.token.line + "]")
+    System.err.println(error.message + "\n[line " + error.token?.line + "]")
     hadRuntimeError = true
 }
 

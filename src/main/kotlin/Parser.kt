@@ -4,10 +4,16 @@ import model.Token
 import model.TokenType
 import model.TokenType.BANG
 import model.TokenType.BANG_EQUAL
+import model.TokenType.CLASS
+import model.TokenType.EQUAL
 import model.TokenType.EQUAL_EQUAL
 import model.TokenType.FALSE
+import model.TokenType.FOR
+import model.TokenType.FUN
 import model.TokenType.GREATER
 import model.TokenType.GREATER_EQUAL
+import model.TokenType.IDENTIFIER
+import model.TokenType.IF
 import model.TokenType.LEFT_PAREN
 import model.TokenType.LESS
 import model.TokenType.LESS_EQUAL
@@ -15,26 +21,53 @@ import model.TokenType.MINUS
 import model.TokenType.NIL
 import model.TokenType.NUMBER
 import model.TokenType.PLUS
+import model.TokenType.PRINT
+import model.TokenType.RETURN
+import model.TokenType.SEMICOLON
 import model.TokenType.SLASH
 import model.TokenType.STAR
 import model.TokenType.STRING
 import model.TokenType.TRUE
+import model.TokenType.VAR
+import model.TokenType.WHILE
 
 class ParseError: RuntimeException()
 
 class Parser(val tokens: List<Token>) {
     private var current: Int = 0
 
-    fun parse(): List<Stmt> {
-        val statements = mutableListOf<Stmt>()
+    fun parse(): List<Stmt?> {
+        val statements = mutableListOf<Stmt?>()
 
         try {
             while (!isAtEnd()) {
-                statements.add(statement())
+                statements.add(declaration())
             }
         } catch (_: ParseError) {}
 
         return statements
+    }
+
+    private fun declaration(): Stmt? {
+        try {
+            if (match(VAR)) return varDeclaration()
+
+            return statement()
+        } catch (_: ParseError) {
+            synchronize()
+            return null
+        }
+    }
+
+    private fun varDeclaration(): Stmt {
+        val name = consume(IDENTIFIER, "Expect variable name.")
+
+        var initializer: Expr? = null
+        if (match(EQUAL)) initializer = expression()
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.")
+
+        return Stmt.Var(name, initializer)
     }
 
     fun parseSingleExpression(): Expr? {
@@ -45,16 +78,15 @@ class Parser(val tokens: List<Token>) {
         }
     }
 
-
     private fun statement(): Stmt {
-        if (match(TokenType.PRINT)) return printStatement()
+        if (match(PRINT)) return printStatement()
 
         return expressionStatement()
     }
 
     private fun printStatement(): Stmt {
         val value = expression()
-        consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        consume(SEMICOLON, "Expect ';' after value.")
 
         return Stmt.Print(value)
     }
@@ -62,12 +94,27 @@ class Parser(val tokens: List<Token>) {
     private fun expressionStatement(): Stmt {
         val expr = expression()
 
-        consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        consume(SEMICOLON, "Expect ';' after value.")
         return Stmt.Expression(expr)
     }
 
     private fun expression(): Expr? {
-        return equality()
+        return assignment()
+    }
+
+    private fun assignment(): Expr? {
+        val expr = equality()
+
+        if (match(EQUAL)) {
+            val equals = previous()
+            val value = assignment()
+
+            if (expr is Expr.Variable) return Expr.Assign(expr.name, value)
+
+            error(equals, "Invalid assignment target.")
+        }
+
+        return expr
     }
 
     private fun equality(): Expr? {
@@ -137,6 +184,8 @@ class Parser(val tokens: List<Token>) {
 
         if (match(NUMBER, STRING)) return Expr.Literal(previous()?.literal)
 
+        if (match(IDENTIFIER)) return Expr.Variable(previous())
+
         if (match(LEFT_PAREN)) {
             val expr = expression()
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
@@ -188,5 +237,18 @@ class Parser(val tokens: List<Token>) {
     private fun advance(): Token? {
         if (!isAtEnd()) current++
         return previous()
+    }
+
+    private fun synchronize() {
+        advance()
+
+        while (!isAtEnd()) {
+            if (previous()?.type == SEMICOLON) {
+                when (peek().type) {
+                    CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
+                    else -> error("Unreachable")
+                }
+            }
+        }
     }
 }
