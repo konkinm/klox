@@ -16,10 +16,10 @@ fun main(args: Array<String>) {
     val fileContents = File(filename).readText()
 
     when (command) {
-        "run" -> runProgram(fileContents)
-        "evaluate" -> evalProgram(fileContents)
-        "parse" -> parseProgram(fileContents)
         "tokenize" -> tokenizeProgram(fileContents)
+        "parse" -> parseProgram(fileContents)
+        "evaluate" -> evalProgram(fileContents)
+        "run" -> runProgram(fileContents)
         else -> {
             System.err.println("Unknown command: $command")
             exitProcess(1)
@@ -30,27 +30,6 @@ fun main(args: Array<String>) {
     if (hadRuntimeError) exitProcess(70) // exit with runtime error
 }
 
-fun runProgram(source: String) {
-    val scanner = Scanner(source)
-    val tokens: List<Token> = scanner.scanTokens()
-    val statements = Parser(tokens).parse()
-    Interpreter().interpret(statements)
-}
-
-fun evalProgram(source: String) {
-    val scanner = Scanner(source)
-    val tokens: List<Token> = scanner.scanTokens()
-    val expression = Parser(tokens).parseSingleExpression()
-    Interpreter().interpret(expression)
-}
-
-fun parseProgram(source: String) {
-    val scanner = Scanner(source)
-    val tokens: List<Token> = scanner.scanTokens()
-    val expression = Parser(tokens).parseSingleExpression()
-
-    println(AstPrinter().print(expression))
-}
 fun tokenizeProgram(source: String) {
     val scanner = Scanner(source)
     val tokens: List<Token> = scanner.scanTokens()
@@ -58,6 +37,28 @@ fun tokenizeProgram(source: String) {
     for (token in tokens) {
         println(token)
     }
+}
+
+fun parseProgram(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+    val statements = Parser(tokens).parse()
+
+    for (statement in statements) println(AstPrinter().print(statement))
+}
+
+fun evalProgram(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+    val statements = Parser(tokens).parse()
+    Interpreter().interpret(statements)
+}
+
+fun runProgram(source: String) {
+    val scanner = Scanner(source)
+    val tokens: List<Token> = scanner.scanTokens()
+    val statements = Parser(tokens).parse()
+    Interpreter().interpret(statements)
 }
 
 fun syntaxError(line: Int, message: String) {

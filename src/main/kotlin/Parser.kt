@@ -37,7 +37,7 @@ import model.TokenType.TRUE
 import model.TokenType.VAR
 import model.TokenType.WHILE
 
-class ParseError: RuntimeException()
+class ParseError : RuntimeException()
 
 class Parser(val tokens: List<Token>) {
     private var current: Int = 0
@@ -49,7 +49,8 @@ class Parser(val tokens: List<Token>) {
             while (!isAtEnd()) {
                 statements.add(declaration())
             }
-        } catch (_: ParseError) {}
+        } catch (_: ParseError) {
+        }
 
         return statements
     }
@@ -85,12 +86,39 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun statement(): Stmt {
+        if (match(FOR)) return forStatement()
         if (match(IF)) return ifStatement()
         if (match(PRINT)) return printStatement()
         if (match(WHILE)) return whileStatement()
         if (match(LEFT_BRACE)) return Stmt.Block(block())
 
         return expressionStatement()
+    }
+
+    private fun forStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after 'while'.")
+        val initializer = if (match(SEMICOLON)) null
+        else if (match(VAR)) varDeclaration()
+        else expressionStatement()
+
+        var condition: Expr? = if (!check(SEMICOLON)) expression() else null
+        consume(SEMICOLON, "Expect ';' after loop condition.")
+
+        val increment: Expr? = if (!check(RIGHT_PAREN)) expression() else null
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        var body: Stmt = statement()
+
+        if (increment != null) {
+            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+        }
+
+        if (condition == null) condition = Expr.Literal(true)
+        body = Stmt.While(condition, body)
+
+        if (initializer != null) body = Stmt.Block(listOf(initializer, body))
+
+        return body
     }
 
     private fun whileStatement(): Stmt {
@@ -310,12 +338,13 @@ class Parser(val tokens: List<Token>) {
         advance()
 
         while (!isAtEnd()) {
-            if (previous()?.type == SEMICOLON) {
-                when (peek().type) {
-                    CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
-                    else -> error("Unreachable")
-                }
+            if (previous()?.type == SEMICOLON) return
+            when (peek().type) {
+                CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
+                else -> {}
             }
+
+            advance()
         }
     }
 }
