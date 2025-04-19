@@ -16,6 +16,7 @@ private val exprTypes = mapOf(
 )
 
 private val stmtTypes = mapOf(
+    "Block" to "val statements: List<Stmt>",
     "Expression" to "val expression: Expr?",
     "Print" to "val expression: Expr?",
     "Var" to "val name: Token?, val initializer: Expr?",

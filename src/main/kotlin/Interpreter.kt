@@ -14,7 +14,7 @@ import model.TokenType.SLASH
 import model.TokenType.STAR
 
 class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
-    private val environment = Environment()
+    private var environment = Environment()
 
     fun interpret(statements: List<Stmt?>) {
         try {
@@ -144,7 +144,7 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return environment.getByTokenLexeme(expr.name)
+        return environment.getByToken(expr.name)
     }
 
     private fun checkNumberOperand(operator: Token, operand: Any?) {
@@ -169,6 +169,23 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
 
     private fun evaluate(expression: Expr?): Any? {
         return expression?.accept(this)
+    }
+
+    override fun visitBlockStmt(stmt: Stmt.Block) {
+        executeBlock(stmt.statements, Environment(enclosing = environment))
+    }
+
+    private fun executeBlock(statements: List<Stmt>, environment: Environment) {
+        val previous = this.environment
+        try {
+            this.environment = environment
+
+            for (statement: Stmt in statements) {
+                execute(statement)
+            }
+        } finally {
+            this.environment = previous
+        }
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {

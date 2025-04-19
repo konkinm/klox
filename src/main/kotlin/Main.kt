@@ -60,7 +60,6 @@ fun tokenizeProgram(source: String) {
     }
 }
 
-
 fun syntaxError(line: Int, message: String) {
     report(line, "", message)
 }

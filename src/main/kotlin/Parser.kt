@@ -14,6 +14,7 @@ import model.TokenType.GREATER
 import model.TokenType.GREATER_EQUAL
 import model.TokenType.IDENTIFIER
 import model.TokenType.IF
+import model.TokenType.LEFT_BRACE
 import model.TokenType.LEFT_PAREN
 import model.TokenType.LESS
 import model.TokenType.LESS_EQUAL
@@ -23,6 +24,7 @@ import model.TokenType.NUMBER
 import model.TokenType.PLUS
 import model.TokenType.PRINT
 import model.TokenType.RETURN
+import model.TokenType.RIGHT_BRACE
 import model.TokenType.SEMICOLON
 import model.TokenType.SLASH
 import model.TokenType.STAR
@@ -80,8 +82,22 @@ class Parser(val tokens: List<Token>) {
 
     private fun statement(): Stmt {
         if (match(PRINT)) return printStatement()
+        if (match(LEFT_BRACE)) return Stmt.Block(block())
 
         return expressionStatement()
+    }
+
+    private fun block(): List<Stmt> {
+        val statements: MutableList<Stmt> = mutableListOf()
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            val declaration = declaration()
+            if (declaration != null) statements.add(declaration)
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.")
+
+        return statements
     }
 
     private fun printStatement(): Stmt {
