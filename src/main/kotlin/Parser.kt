@@ -2,9 +2,11 @@ import model.Expr
 import model.Stmt
 import model.Token
 import model.TokenType
+import model.TokenType.AND
 import model.TokenType.BANG
 import model.TokenType.BANG_EQUAL
 import model.TokenType.CLASS
+import model.TokenType.ELSE
 import model.TokenType.EQUAL
 import model.TokenType.EQUAL_EQUAL
 import model.TokenType.FALSE
@@ -21,10 +23,12 @@ import model.TokenType.LESS_EQUAL
 import model.TokenType.MINUS
 import model.TokenType.NIL
 import model.TokenType.NUMBER
+import model.TokenType.OR
 import model.TokenType.PLUS
 import model.TokenType.PRINT
 import model.TokenType.RETURN
 import model.TokenType.RIGHT_BRACE
+import model.TokenType.RIGHT_PAREN
 import model.TokenType.SEMICOLON
 import model.TokenType.SLASH
 import model.TokenType.STAR
@@ -81,10 +85,23 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun statement(): Stmt {
+        if (match(IF)) return ifStatement()
         if (match(PRINT)) return printStatement()
         if (match(LEFT_BRACE)) return Stmt.Block(block())
 
         return expressionStatement()
+    }
+
+    private fun ifStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.")
+        val condition = expression()
+        consume(RIGHT_PAREN, "Expect ')' after if condition.")
+
+        val thenBranch = statement()
+        var elseBranch: Stmt? = null
+        if (match(ELSE)) elseBranch = statement()
+
+        return Stmt.If(condition, thenBranch, elseBranch)
     }
 
     private fun block(): List<Stmt> {
@@ -119,7 +136,7 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun assignment(): Expr? {
-        val expr = equality()
+        val expr = or()
 
         if (match(EQUAL)) {
             val equals = previous()
@@ -128,6 +145,30 @@ class Parser(val tokens: List<Token>) {
             if (expr is Expr.Variable) return Expr.Assign(expr.name, value)
 
             error(equals, "Invalid assignment target.")
+        }
+
+        return expr
+    }
+
+    private fun or(): Expr? {
+        var expr = and()
+
+        while (match(OR)) {
+            val operator = previous()
+            val right = and()
+            expr = Expr.Logical(expr, operator, right)
+        }
+
+        return expr
+    }
+
+    private fun and(): Expr? {
+        var expr = equality()
+
+        while (match(AND)) {
+            val operator = previous()
+            val right = equality()
+            expr = Expr.Logical(expr, operator, right)
         }
 
         return expr
@@ -204,7 +245,7 @@ class Parser(val tokens: List<Token>) {
 
         if (match(LEFT_PAREN)) {
             val expr = expression()
-            consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
+            consume(RIGHT_PAREN, "Expect ')' after expression.")
             return Expr.Grouping(expr)
         }
 

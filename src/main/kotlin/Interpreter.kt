@@ -1,6 +1,7 @@
 import model.Expr
 import model.Stmt
 import model.Token
+import model.TokenType
 import model.TokenType.BANG
 import model.TokenType.BANG_EQUAL
 import model.TokenType.EQUAL_EQUAL
@@ -9,6 +10,7 @@ import model.TokenType.GREATER_EQUAL
 import model.TokenType.LESS
 import model.TokenType.LESS_EQUAL
 import model.TokenType.MINUS
+import model.TokenType.OR
 import model.TokenType.PLUS
 import model.TokenType.SLASH
 import model.TokenType.STAR
@@ -128,6 +130,18 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         return expr.value
     }
 
+    override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+        val left = evaluate(expr.left)
+
+        if (expr.operator?.type == OR) {
+            if (isTruthy(left)) return left
+        } else {
+            if (!isTruthy(left)) return left
+        }
+
+        return evaluate(expr.right)
+    }
+
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right: Any? = evaluate(expr.right)
 
@@ -190,6 +204,13 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
+    }
+
+    override fun visitIfStmt(stmt: Stmt.If) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch)
+        } else if (stmt.elseBranch != null)
+            execute(stmt.elseBranch)
     }
 
     override fun visitPrintStmt(stmt: Stmt.Print) {

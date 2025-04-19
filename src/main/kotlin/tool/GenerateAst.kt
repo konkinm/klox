@@ -11,6 +11,7 @@ private val exprTypes = mapOf(
     "Binary" to "val left: Expr?, val operator: Token?, val right: Expr?",
     "Grouping" to "val expression: Expr?",
     "Literal" to "val value: Any?",
+    "Logical" to "val left: Expr?, val operator: Token?, val right: Expr?",
     "Unary" to "val operator: Token?, val right: Expr?",
     "Variable" to "val name: Token?",
 )
@@ -18,6 +19,7 @@ private val exprTypes = mapOf(
 private val stmtTypes = mapOf(
     "Block" to "val statements: List<Stmt>",
     "Expression" to "val expression: Expr?",
+    "If" to "val condition: Expr?, val thenBranch: Stmt?, val elseBranch: Stmt?",
     "Print" to "val expression: Expr?",
     "Var" to "val name: Token?, val initializer: Expr?",
 )
