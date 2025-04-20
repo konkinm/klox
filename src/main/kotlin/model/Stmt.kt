@@ -3,6 +3,7 @@ package model
 abstract class Stmt {
     interface Visitor<R> {
         fun visitBlockStmt(stmt: Block): R?
+        fun visitBreakStmt(stmt: Break): R?
         fun visitExpressionStmt(stmt: Expression): R?
         fun visitIfStmt(stmt: If): R?
         fun visitPrintStmt(stmt: Print): R?
@@ -15,6 +16,12 @@ abstract class Stmt {
     data class Block(val statements: List<Stmt>) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>) : R? {
           return visitor.visitBlockStmt(this)
+        }
+    }
+
+    data class Break(val expr: Expr? = null) : Stmt() {
+        override fun <R> accept(visitor: Visitor<R>) : R? {
+          return visitor.visitBreakStmt(this)
         }
     }
 

@@ -1,9 +1,48 @@
 import model.Token
 import model.TokenType
-import model.TokenType.*
+import model.TokenType.AND
+import model.TokenType.BANG
+import model.TokenType.BANG_EQUAL
+import model.TokenType.BREAK
+import model.TokenType.CLASS
+import model.TokenType.COMMA
+import model.TokenType.DOT
+import model.TokenType.ELSE
+import model.TokenType.EOF
+import model.TokenType.EQUAL
+import model.TokenType.EQUAL_EQUAL
+import model.TokenType.FALSE
+import model.TokenType.FOR
+import model.TokenType.FUN
+import model.TokenType.GREATER
+import model.TokenType.GREATER_EQUAL
+import model.TokenType.IDENTIFIER
+import model.TokenType.IF
+import model.TokenType.LEFT_BRACE
+import model.TokenType.LESS
+import model.TokenType.LESS_EQUAL
+import model.TokenType.MINUS
+import model.TokenType.NIL
+import model.TokenType.NUMBER
+import model.TokenType.OR
+import model.TokenType.PLUS
+import model.TokenType.PRINT
+import model.TokenType.RETURN
+import model.TokenType.RIGHT_BRACE
+import model.TokenType.RIGHT_PAREN
+import model.TokenType.SEMICOLON
+import model.TokenType.SLASH
+import model.TokenType.STAR
+import model.TokenType.STRING
+import model.TokenType.SUPER
+import model.TokenType.THIS
+import model.TokenType.TRUE
+import model.TokenType.VAR
+import model.TokenType.WHILE
 
 private val keywords: Map<String, TokenType> = mapOf(
     "and" to AND,
+    "break" to BREAK,
     "class" to CLASS,
     "else" to ELSE,
     "false" to FALSE,
@@ -40,7 +79,7 @@ class Scanner(val source: String) {
     private fun scanToken() {
         val c: Char = advance()
         when (c) {
-            '(' -> addToken(LEFT_PAREN)
+            '(' -> addToken(TokenType.LEFT_PAREN)
             ')' -> addToken(RIGHT_PAREN)
             '{' -> addToken(LEFT_BRACE)
             '}' -> addToken(RIGHT_BRACE)

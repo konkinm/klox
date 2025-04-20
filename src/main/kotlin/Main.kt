@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    if (hadError) exitProcess(65) // exit with syntax error
+    if (hadError) exitProcess(65) // exit with compile error
     if (hadRuntimeError) exitProcess(70) // exit with runtime error
 }
 

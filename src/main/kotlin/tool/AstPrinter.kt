@@ -52,6 +52,10 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return sb.toString()
     }
 
+    override fun visitBreakStmt(stmt: Stmt.Break): String? {
+        return "break"
+    }
+
     override fun visitExpressionStmt(stmt: Stmt.Expression): String? {
         return parenthesize( ";", stmt.expression)
     }

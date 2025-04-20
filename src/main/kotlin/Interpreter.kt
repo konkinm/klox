@@ -1,7 +1,6 @@
 import model.Expr
 import model.Stmt
 import model.Token
-import model.TokenType
 import model.TokenType.BANG
 import model.TokenType.BANG_EQUAL
 import model.TokenType.EQUAL_EQUAL
@@ -23,15 +22,7 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
             for (statement in statements) {
                 execute(statement)
             }
-        } catch (error: RuntimeError) {
-            runtimeError(error)
-        }
-    }
-
-    fun interpret(expression: Expr?) {
-        try {
-            val value = evaluate(expression)
-            println(stringify(value))
+        } catch (_: BreakException) {
         } catch (error: RuntimeError) {
             runtimeError(error)
         }
@@ -189,6 +180,10 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         executeBlock(stmt.statements, Environment(enclosing = environment))
     }
 
+    override fun visitBreakStmt(stmt: Stmt.Break) {
+        throw BreakException()
+    }
+
     private fun executeBlock(statements: List<Stmt>, environment: Environment) {
         val previous = this.environment
         try {
@@ -226,10 +221,14 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
     }
 
     override fun visitWhileStmt(stmt: Stmt.While) {
-        while (isTruthy(evaluate(stmt.condition))) execute(stmt.body)
+        try {
+            while (isTruthy(evaluate(stmt.condition))) execute(stmt.body)
+        } catch (_: BreakException) {}
     }
 }
 
 class RuntimeError(operator: Token?, message: String): RuntimeException(message) {
     val token = operator
 }
+
+private class BreakException: RuntimeException()

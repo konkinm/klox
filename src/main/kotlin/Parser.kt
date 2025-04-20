@@ -5,6 +5,7 @@ import model.TokenType
 import model.TokenType.AND
 import model.TokenType.BANG
 import model.TokenType.BANG_EQUAL
+import model.TokenType.BREAK
 import model.TokenType.CLASS
 import model.TokenType.ELSE
 import model.TokenType.EQUAL
@@ -41,6 +42,7 @@ class ParseError : RuntimeException()
 
 class Parser(val tokens: List<Token>) {
     private var current: Int = 0
+    private var loopDepth: Int = 0
 
     fun parse(): List<Stmt?> {
         val statements = mutableListOf<Stmt?>()
@@ -77,15 +79,8 @@ class Parser(val tokens: List<Token>) {
         return Stmt.Var(name, initializer)
     }
 
-    fun parseSingleExpression(): Expr? {
-        return try {
-            expression()
-        } catch (_: ParseError) {
-            null
-        }
-    }
-
     private fun statement(): Stmt {
+        if (match(BREAK)) return breakStatement()
         if (match(FOR)) return forStatement()
         if (match(IF)) return ifStatement()
         if (match(PRINT)) return printStatement()
@@ -93,6 +88,14 @@ class Parser(val tokens: List<Token>) {
         if (match(LEFT_BRACE)) return Stmt.Block(block())
 
         return expressionStatement()
+    }
+
+    private fun breakStatement(): Stmt {
+        if (loopDepth == 0) error(previous(), "Must be inside a loop to use break.")
+
+        consume(SEMICOLON, "Expect ';' after 'break'.")
+
+        return Stmt.Break()
     }
 
     private fun forStatement(): Stmt {
@@ -107,27 +110,37 @@ class Parser(val tokens: List<Token>) {
         val increment: Expr? = if (!check(RIGHT_PAREN)) expression() else null
         consume(RIGHT_PAREN, "Expect ')' after for clauses.")
 
-        var body: Stmt = statement()
+        try {
+            loopDepth++
+            var body: Stmt = statement()
 
-        if (increment != null) {
-            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+            if (increment != null) {
+                body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+            }
+
+            if (condition == null) condition = Expr.Literal(true)
+            body = Stmt.While(condition, body)
+
+            if (initializer != null) body = Stmt.Block(listOf(initializer, body))
+
+            return body
+        } finally {
+            loopDepth--
         }
-
-        if (condition == null) condition = Expr.Literal(true)
-        body = Stmt.While(condition, body)
-
-        if (initializer != null) body = Stmt.Block(listOf(initializer, body))
-
-        return body
     }
 
     private fun whileStatement(): Stmt {
         consume(LEFT_PAREN, "Expect '(' after 'while'.")
         val condition = expression()
         consume(RIGHT_PAREN, "Expect ')' after condition.")
-        val body = statement()
+        try {
+            loopDepth++
+            val body = statement()
 
-        return Stmt.While(condition, body)
+            return Stmt.While(condition, body)
+        } finally {
+            loopDepth--
+        }
     }
 
     private fun ifStatement(): Stmt {
