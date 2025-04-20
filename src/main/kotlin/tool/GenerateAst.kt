@@ -9,6 +9,7 @@ import kotlin.system.exitProcess
 private val exprTypes = mapOf(
     "Assign" to "val name: Token?, val value: Expr?",
     "Binary" to "val left: Expr?, val operator: Token?, val right: Expr?",
+    "Call" to "val callee: Expr?, val paren: Token?, val arguments: List<Expr?>",
     "Grouping" to "val expression: Expr?",
     "Literal" to "val value: Any?",
     "Logical" to "val left: Expr?, val operator: Token?, val right: Expr?",

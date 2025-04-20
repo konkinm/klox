@@ -7,6 +7,7 @@ import model.TokenType.BANG
 import model.TokenType.BANG_EQUAL
 import model.TokenType.BREAK
 import model.TokenType.CLASS
+import model.TokenType.COMMA
 import model.TokenType.ELSE
 import model.TokenType.EQUAL
 import model.TokenType.EQUAL_EQUAL
@@ -55,6 +56,14 @@ class Parser(val tokens: List<Token>) {
         }
 
         return statements
+    }
+
+    fun parseSingleExpression(): Expr? {
+        return try {
+            expression()
+        } catch (_: ParseError) {
+            null
+        }
     }
 
     private fun declaration(): Stmt? {
@@ -282,7 +291,34 @@ class Parser(val tokens: List<Token>) {
             return Expr.Unary(operator, right)
         }
 
-        return primary()
+        return call()
+    }
+
+    private fun call(): Expr? {
+        var expr: Expr? = primary()
+
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                expr = finishCall(expr)
+            } else break
+        }
+
+        return expr
+    }
+
+    private fun finishCall(callee: Expr?): Expr? {
+        val arguments: MutableList<Expr?> = mutableListOf()
+
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (arguments.size >= 255) error(peek(), "Can't have more than 255 arguments.")
+                arguments.add(expression())
+            } while (match(COMMA))
+        }
+
+        val paren: Token? = consume(RIGHT_PAREN, "Expect ')' after arguments.")
+
+        return Expr.Call(callee, paren, arguments)
     }
 
     private fun primary(): Expr {

@@ -1,4 +1,5 @@
 import model.Expr
+import model.LoxCallable
 import model.Stmt
 import model.Token
 import model.TokenType.BANG
@@ -14,8 +15,10 @@ import model.TokenType.PLUS
 import model.TokenType.SLASH
 import model.TokenType.STAR
 
-class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
-    private var environment = Environment()
+class Interpreter(
+    globals: Environment = defaultGlobalEnvironment
+): Expr.Visitor<Any>, Stmt.Visitor<Unit> {
+    private var environment = globals
 
     fun interpret(statements: List<Stmt?>) {
         try {
@@ -23,6 +26,15 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
                 execute(statement)
             }
         } catch (_: BreakException) {
+        } catch (error: RuntimeError) {
+            runtimeError(error)
+        }
+    }
+
+    fun interpret(expression: Expr?) {
+        try {
+            val value = evaluate(expression)
+            println(stringify(value))
         } catch (error: RuntimeError) {
             runtimeError(error)
         }
@@ -111,6 +123,23 @@ class Interpreter: Expr.Visitor<Any>, Stmt.Visitor<Unit> {
         }
 
         return null
+    }
+
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        val callee = evaluate(expr.callee)
+
+        val arguments: MutableList<Any?> = mutableListOf()
+
+        for (argument in expr.arguments) {
+            arguments.add(evaluate(argument))
+        }
+
+        if (callee !is LoxCallable)
+            throw RuntimeError(expr.paren, "Can only call functions and classes.")
+        if (arguments.size != callee.arity())
+            throw RuntimeError(expr.paren, "Expected ${callee.arity()} arguments but got ${arguments.size}.")
+
+        return callee.call(this, arguments)
     }
 
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
@@ -232,3 +261,17 @@ class RuntimeError(operator: Token?, message: String): RuntimeException(message)
 }
 
 private class BreakException: RuntimeException()
+
+private val defaultGlobalEnvironment = Environment().apply {
+    define("clock", object: LoxCallable {
+        override fun arity(): Int = 0
+
+        override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
+            return System.currentTimeMillis() / 1000.0
+        }
+
+        override fun toString(): String {
+            return "<native fn>"
+        }
+    })
+}

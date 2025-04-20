@@ -10,6 +10,10 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return stmt?.accept(this) ?: ""
     }
 
+    fun print(expr: Expr?): String {
+        return expr?.accept(this) ?: ""
+    }
+
     override fun visitAssignExpr(expr: Expr.Assign): String? {
         return parenthesize2( "=", expr.name?.lexeme, expr.value)
     }
@@ -17,6 +21,10 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
     override fun visitBinaryExpr(expr: Expr.Binary): String {
         return parenthesize( expr.operator?.lexeme,
             expr.left, expr.right)
+    }
+
+    override fun visitCallExpr(expr: Expr.Call): String? {
+        return parenthesize2("call", expr.callee, expr.arguments)
     }
 
     override fun visitGroupingExpr(expr: Expr.Grouping): String {
@@ -119,7 +127,7 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
                 is Expr -> sb.append(part.accept(this))
                 is Stmt -> sb.append(part.accept(this))
                 is Token -> sb.append(part.lexeme)
-                is List<*> -> transform(sb, part)
+                is Array<*> -> transform(sb, *part)
                 else -> sb.append(part)
             }
         }

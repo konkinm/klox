@@ -42,16 +42,16 @@ fun tokenizeProgram(source: String) {
 fun parseProgram(source: String) {
     val scanner = Scanner(source)
     val tokens: List<Token> = scanner.scanTokens()
-    val statements = Parser(tokens).parse()
+    val expression = Parser(tokens).parseSingleExpression()
 
-    for (statement in statements) println(AstPrinter().print(statement))
+    println(AstPrinter().print(expression))
 }
 
 fun evalProgram(source: String) {
     val scanner = Scanner(source)
     val tokens: List<Token> = scanner.scanTokens()
-    val statements = Parser(tokens).parse()
-    Interpreter().interpret(statements)
+    val expression = Parser(tokens).parseSingleExpression()
+    Interpreter().interpret(expression)
 }
 
 fun runProgram(source: String) {
