@@ -1,5 +1,6 @@
 import model.Expr
 import model.LoxCallable
+import model.LoxFunction
 import model.Stmt
 import model.Token
 import model.TokenType.BANG
@@ -16,7 +17,7 @@ import model.TokenType.SLASH
 import model.TokenType.STAR
 
 class Interpreter(
-    globals: Environment = defaultGlobalEnvironment
+    val globals: Environment = defaultGlobalEnvironment
 ): Expr.Visitor<Any>, Stmt.Visitor<Unit> {
     private var environment = globals
 
@@ -213,12 +214,12 @@ class Interpreter(
         throw BreakException()
     }
 
-    private fun executeBlock(statements: List<Stmt>, environment: Environment) {
+    fun executeBlock(statements: List<Stmt?>, environment: Environment) {
         val previous = this.environment
         try {
             this.environment = environment
 
-            for (statement: Stmt in statements) {
+            for (statement: Stmt? in statements) {
                 execute(statement)
             }
         } finally {
@@ -228,6 +229,11 @@ class Interpreter(
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
+    }
+
+    override fun visitFunctionStmt(stmt: Stmt.Function) {
+        val function = LoxFunction(stmt)
+        environment.define(stmt.name?.lexeme, function)
     }
 
     override fun visitIfStmt(stmt: Stmt.If) {
