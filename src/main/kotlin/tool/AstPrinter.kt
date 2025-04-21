@@ -100,6 +100,11 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return parenthesize( "print", stmt.expression)
     }
 
+    override fun visitReturnStmt(stmt: Stmt.Return): String? {
+        if (stmt.value == null) return "(return)"
+        return parenthesize("return", stmt.value)
+    }
+
     override fun visitVarStmt(stmt: Stmt.Var): String? {
         if (stmt.initializer == null) {
             return parenthesize2( "var", stmt.name)

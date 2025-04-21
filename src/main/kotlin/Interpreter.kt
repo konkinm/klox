@@ -17,7 +17,7 @@ import model.TokenType.SLASH
 import model.TokenType.STAR
 
 class Interpreter(
-    val globals: Environment = defaultGlobalEnvironment
+    globals: Environment = defaultGlobalEnvironment,
 ): Expr.Visitor<Any>, Stmt.Visitor<Unit> {
     private var environment = globals
 
@@ -232,7 +232,7 @@ class Interpreter(
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function) {
-        val function = LoxFunction(stmt)
+        val function = LoxFunction(stmt, environment)
         environment.define(stmt.name?.lexeme, function)
     }
 
@@ -246,6 +246,13 @@ class Interpreter(
     override fun visitPrintStmt(stmt: Stmt.Print) {
         val value = evaluate(stmt.expression)
         println(stringify(value))
+    }
+
+    override fun visitReturnStmt(stmt: Stmt.Return) {
+        var value: Any? = null
+        if (stmt.value != null) value = evaluate(stmt.value)
+
+        throw Return(value)
     }
 
     override fun visitVarStmt(stmt: Stmt.Var) {
@@ -265,6 +272,9 @@ class Interpreter(
 class RuntimeError(operator: Token?, message: String): RuntimeException(message) {
     val token = operator
 }
+
+class Return(val value: Any?):
+RuntimeException(null, null, false, false)
 
 private class BreakException: RuntimeException()
 

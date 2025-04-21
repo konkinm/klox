@@ -24,6 +24,7 @@ private val stmtTypes = mapOf(
     "Function" to "val name: Token?, val params: List<Token?>, val body: List<Stmt?>",
     "If" to "val condition: Expr?, val thenBranch: Stmt?, val elseBranch: Stmt?",
     "Print" to "val expression: Expr?",
+    "Return" to "val keyword: Token?, val value: Expr?",
     "Var" to "val name: Token?, val initializer: Expr?",
     "While" to "val condition: Expr?, val body: Stmt?",
 )
