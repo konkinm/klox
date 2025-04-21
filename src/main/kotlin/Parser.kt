@@ -45,7 +45,7 @@ class Parser(val tokens: List<Token>) {
     private var current: Int = 0
     private var loopDepth: Int = 0
 
-    fun parse(): List<Stmt?> {
+    fun parse(): List<Stmt> {
         val statements = mutableListOf<Stmt?>()
 
         try {
@@ -55,7 +55,7 @@ class Parser(val tokens: List<Token>) {
         } catch (_: ParseError) {
         }
 
-        return statements
+        return statements.mapNotNull { it }
     }
 
     fun parseSingleExpression(): Expr? {
@@ -78,10 +78,10 @@ class Parser(val tokens: List<Token>) {
         }
     }
 
-    private fun function(kind: String): Stmt? {
+    private fun function(kind: String): Stmt {
         val name = consume(IDENTIFIER, "Expect $kind name.")
         consume(LEFT_PAREN, "Expect '(' after $kind name.")
-        val parameters: MutableList<Token?> = mutableListOf()
+        val parameters: MutableList<Token> = mutableListOf()
         if (!check(RIGHT_PAREN)) {
             do {
                 if (parameters.size >= 255) error(peek(), "Can't have more than 255 parameters.")
@@ -128,7 +128,7 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun forStatement(): Stmt {
-        consume(LEFT_PAREN, "Expect '(' after 'while'.")
+        consume(LEFT_PAREN, "Expect '(' after 'for'.")
         val initializer = if (match(SEMICOLON)) null
         else if (match(VAR)) varDeclaration()
         else expressionStatement()
@@ -217,15 +217,15 @@ class Parser(val tokens: List<Token>) {
     private fun expressionStatement(): Stmt {
         val expr = expression()
 
-        consume(SEMICOLON, "Expect ';' after value.")
+        consume(SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(expr)
     }
 
-    private fun expression(): Expr? {
+    private fun expression(): Expr {
         return assignment()
     }
 
-    private fun assignment(): Expr? {
+    private fun assignment(): Expr {
         val expr = or()
 
         if (match(EQUAL)) {
@@ -240,7 +240,7 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun or(): Expr? {
+    private fun or(): Expr {
         var expr = and()
 
         while (match(OR)) {
@@ -252,7 +252,7 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun and(): Expr? {
+    private fun and(): Expr {
         var expr = equality()
 
         while (match(AND)) {
@@ -264,7 +264,7 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun equality(): Expr? {
+    private fun equality(): Expr {
         var expr = comparison()
 
         while (match(BANG_EQUAL, EQUAL_EQUAL)) {
@@ -277,7 +277,7 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun comparison(): Expr? {
+    private fun comparison(): Expr {
         var expr = term()
 
         while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
@@ -290,7 +290,7 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun term(): Expr? {
+    private fun term(): Expr {
         var expr = factor()
 
         while (match(MINUS, PLUS)) {
@@ -302,7 +302,7 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun factor(): Expr? {
+    private fun factor(): Expr {
         var expr = unary()
 
         while (match(SLASH, STAR)) {
@@ -314,7 +314,7 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun unary(): Expr? {
+    private fun unary(): Expr {
         if (match(BANG, MINUS)) {
             val operator = previous()
             val right = unary()
@@ -324,8 +324,8 @@ class Parser(val tokens: List<Token>) {
         return call()
     }
 
-    private fun call(): Expr? {
-        var expr: Expr? = primary()
+    private fun call(): Expr {
+        var expr: Expr = primary()
 
         while (true) {
             if (match(LEFT_PAREN)) {
@@ -336,8 +336,8 @@ class Parser(val tokens: List<Token>) {
         return expr
     }
 
-    private fun finishCall(callee: Expr?): Expr? {
-        val arguments: MutableList<Expr?> = mutableListOf()
+    private fun finishCall(callee: Expr): Expr {
+        val arguments: MutableList<Expr> = mutableListOf()
 
         if (!check(RIGHT_PAREN)) {
             do {
@@ -346,7 +346,7 @@ class Parser(val tokens: List<Token>) {
             } while (match(COMMA))
         }
 
-        val paren: Token? = consume(RIGHT_PAREN, "Expect ')' after arguments.")
+        val paren: Token = consume(RIGHT_PAREN, "Expect ')' after arguments.")
 
         return Expr.Call(callee, paren, arguments)
     }
@@ -356,7 +356,7 @@ class Parser(val tokens: List<Token>) {
         if (match(TRUE)) return Expr.Literal(true)
         if (match(NIL)) return Expr.Literal(null)
 
-        if (match(NUMBER, STRING)) return Expr.Literal(previous()?.literal)
+        if (match(NUMBER, STRING)) return Expr.Literal(previous().literal)
 
         if (match(IDENTIFIER)) return Expr.Variable(previous())
 
@@ -369,7 +369,7 @@ class Parser(val tokens: List<Token>) {
         throw parseError(peek(), "Expect expression.")
     }
 
-    private fun consume(type: TokenType, message: String): Token? {
+    private fun consume(type: TokenType, message: String): Token {
         if (check(type)) return advance()
 
         throw parseError(peek(), message)
@@ -404,11 +404,11 @@ class Parser(val tokens: List<Token>) {
         return tokens[current]
     }
 
-    private fun previous(): Token? {
+    private fun previous(): Token {
         return tokens[current - 1]
     }
 
-    private fun advance(): Token? {
+    private fun advance(): Token {
         if (!isAtEnd()) current++
         return previous()
     }
@@ -417,7 +417,7 @@ class Parser(val tokens: List<Token>) {
         advance()
 
         while (!isAtEnd()) {
-            if (previous()?.type == SEMICOLON) return
+            if (previous().type == SEMICOLON) return
             when (peek().type) {
                 CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
                 else -> {}

@@ -7,26 +7,26 @@ import kotlin.io.path.Path
 import kotlin.system.exitProcess
 
 private val exprTypes = mapOf(
-    "Assign" to "val name: Token?, val value: Expr?",
-    "Binary" to "val left: Expr?, val operator: Token?, val right: Expr?",
-    "Call" to "val callee: Expr?, val paren: Token?, val arguments: List<Expr?>",
-    "Grouping" to "val expression: Expr?",
+    "Assign" to "val name: Token, val value: Expr",
+    "Binary" to "val left: Expr, val operator: Token, val right: Expr",
+    "Call" to "val callee: Expr, val paren: Token, val arguments: List<Expr>",
+    "Grouping" to "val expression: Expr",
     "Literal" to "val value: Any?",
-    "Logical" to "val left: Expr?, val operator: Token?, val right: Expr?",
-    "Unary" to "val operator: Token?, val right: Expr?",
-    "Variable" to "val name: Token?",
+    "Logical" to "val left: Expr, val operator: Token, val right: Expr",
+    "Unary" to "val operator: Token, val right: Expr",
+    "Variable" to "val name: Token",
 )
 
 private val stmtTypes = mapOf(
     "Block" to "val statements: List<Stmt>",
     "Break" to "val expr: Expr? = null",
-    "Expression" to "val expression: Expr?",
-    "Function" to "val name: Token?, val params: List<Token?>, val body: List<Stmt?>",
-    "If" to "val condition: Expr?, val thenBranch: Stmt?, val elseBranch: Stmt?",
-    "Print" to "val expression: Expr?",
-    "Return" to "val keyword: Token?, val value: Expr?",
-    "Var" to "val name: Token?, val initializer: Expr?",
-    "While" to "val condition: Expr?, val body: Stmt?",
+    "Expression" to "val expression: Expr",
+    "Function" to "val name: Token, val params: List<Token>, val body: List<Stmt>",
+    "If" to "val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?",
+    "Print" to "val expression: Expr",
+    "Return" to "val keyword: Token, val value: Expr?",
+    "Var" to "val name: Token, val initializer: Expr?",
+    "While" to "val condition: Expr, val body: Stmt",
 )
 
 fun main(args: Array<String>) {
@@ -56,7 +56,7 @@ fun defineAst(outputDir: String, baseName: String, types: Map<String, String>) {
 
     // The base accept() method.
     writer.println()
-    writer.println("    abstract fun <R> accept(visitor: Visitor<R>): R?")
+    writer.println("    abstract fun <R> accept(visitor: Visitor<R>): R")
     writer.println()
 
     for (type in types) {
@@ -74,18 +74,18 @@ fun defineVisitor(writer: PrintWriter, baseName: String, types: Map<String, Stri
 
     for (type in types) {
         val typeName: String = type.key
-        writer.println("        fun visit$typeName$baseName(${baseName.lowercase(getDefault())}: $typeName): R?")
+        writer.println("        fun visit$typeName$baseName(${baseName.lowercase(getDefault())}: $typeName): R")
     }
 
     writer.println("  }")
 }
 
 fun defineType(writer: PrintWriter, baseName: String, className: String, fieldList: String) {
-    writer.print("    data class $className($fieldList) : $baseName() {")
+    writer.print("    class $className($fieldList) : $baseName() {")
 
     // Visitor pattern.
     writer.println()
-    writer.println("        override fun <R> accept(visitor: Visitor<R>) : R? {")
+    writer.println("        override fun <R> accept(visitor: Visitor<R>) : R {")
     writer.println("          return visitor.visit$className$baseName(this)")
     writer.println("        }")
 

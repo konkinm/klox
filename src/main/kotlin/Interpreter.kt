@@ -16,9 +16,11 @@ import model.TokenType.PLUS
 import model.TokenType.SLASH
 import model.TokenType.STAR
 
+
 class Interpreter(
-    globals: Environment = defaultGlobalEnvironment,
-): Expr.Visitor<Any>, Stmt.Visitor<Unit> {
+    private val globals: Environment = defaultGlobalEnvironment,
+    private val locals: MutableMap<Expr, Int> = HashMap(),
+): Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
     private var environment = globals
 
     fun interpret(statements: List<Stmt?>) {
@@ -26,7 +28,6 @@ class Interpreter(
             for (statement in statements) {
                 execute(statement)
             }
-        } catch (_: BreakException) {
         } catch (error: RuntimeError) {
             runtimeError(error)
         }
@@ -43,6 +44,10 @@ class Interpreter(
 
     private fun execute(statement: Stmt?) {
         statement?.accept(this)
+    }
+
+    fun resolve(expr: Expr, depth: Int) {
+        locals.put(expr, depth)
     }
 
     private fun stringify(value: Any?): String {
@@ -66,7 +71,13 @@ class Interpreter(
     override fun visitAssignExpr(expr: Expr.Assign): Any? {
         val value = evaluate(expr.value)
 
-        environment.assign(expr.name, value)
+        val distance = locals.get(expr)
+        if (distance != null) {
+            environment.assignAt(distance, expr.name, value)
+        } else {
+            globals.assign(expr.name, value)
+        }
+
         return value
     }
 
@@ -74,7 +85,7 @@ class Interpreter(
         val left = evaluate(expr.left)
         val right = evaluate(expr.right)
 
-        when (expr.operator?.type) {
+        when (expr.operator.type) {
             MINUS -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) - (right as Double)
@@ -154,7 +165,7 @@ class Interpreter(
     override fun visitLogicalExpr(expr: Expr.Logical): Any? {
         val left = evaluate(expr.left)
 
-        if (expr.operator?.type == OR) {
+        if (expr.operator.type == OR) {
             if (isTruthy(left)) return left
         } else {
             if (!isTruthy(left)) return left
@@ -166,7 +177,7 @@ class Interpreter(
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right: Any? = evaluate(expr.right)
 
-        when (expr.operator?.type) {
+        when (expr.operator.type) {
             MINUS -> {
                 checkNumberOperand(expr.operator, right)
                 return -(right as Double)
@@ -179,12 +190,21 @@ class Interpreter(
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return environment.getByToken(expr.name)
+        return lookUpVariable(expr.name, expr)
+    }
+
+    private fun lookUpVariable(name: Token, expr: Expr?): Any? {
+        val distance = locals.get(expr)
+        if (distance != null) {
+            return environment.getAt(distance, name.lexeme)
+        } else {
+            return globals.getByToken(name)
+        }
     }
 
     private fun checkNumberOperand(operator: Token, operand: Any?) {
         if (operand is Double) return
-        throw RuntimeError(operator, "Operand must be a number")
+        throw RuntimeError(operator, "Operand must be a number.")
     }
 
     private fun checkNumberOperands(
@@ -206,11 +226,12 @@ class Interpreter(
         return expression?.accept(this)
     }
 
-    override fun visitBlockStmt(stmt: Stmt.Block) {
+    override fun visitBlockStmt(stmt: Stmt.Block): Void? {
         executeBlock(stmt.statements, Environment(enclosing = environment))
+        return null
     }
 
-    override fun visitBreakStmt(stmt: Stmt.Break) {
+    override fun visitBreakStmt(stmt: Stmt.Break): Void? {
         throw BreakException()
     }
 
@@ -227,45 +248,51 @@ class Interpreter(
         }
     }
 
-    override fun visitExpressionStmt(stmt: Stmt.Expression) {
+    override fun visitExpressionStmt(stmt: Stmt.Expression): Void? {
         evaluate(stmt.expression)
+        return null
     }
 
-    override fun visitFunctionStmt(stmt: Stmt.Function) {
+    override fun visitFunctionStmt(stmt: Stmt.Function): Void? {
         val function = LoxFunction(stmt, environment)
-        environment.define(stmt.name?.lexeme, function)
+        environment.define(stmt.name.lexeme, function)
+        return null
     }
 
-    override fun visitIfStmt(stmt: Stmt.If) {
+    override fun visitIfStmt(stmt: Stmt.If): Void? {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch)
         } else if (stmt.elseBranch != null)
             execute(stmt.elseBranch)
+        return null
     }
 
-    override fun visitPrintStmt(stmt: Stmt.Print) {
+    override fun visitPrintStmt(stmt: Stmt.Print): Void? {
         val value = evaluate(stmt.expression)
         println(stringify(value))
+        return null
     }
 
-    override fun visitReturnStmt(stmt: Stmt.Return) {
+    override fun visitReturnStmt(stmt: Stmt.Return): Void? {
         var value: Any? = null
         if (stmt.value != null) value = evaluate(stmt.value)
 
         throw Return(value)
     }
 
-    override fun visitVarStmt(stmt: Stmt.Var) {
+    override fun visitVarStmt(stmt: Stmt.Var): Void? {
         var value: Any? = null
         if (stmt.initializer != null) value = evaluate(stmt.initializer)
 
-        environment.define(stmt.name?.lexeme, value)
+        environment.define(stmt.name.lexeme, value)
+        return null
     }
 
-    override fun visitWhileStmt(stmt: Stmt.While) {
+    override fun visitWhileStmt(stmt: Stmt.While): Void? {
         try {
             while (isTruthy(evaluate(stmt.condition))) execute(stmt.body)
         } catch (_: BreakException) {}
+        return null
     }
 }
 
@@ -274,7 +301,7 @@ class RuntimeError(operator: Token?, message: String): RuntimeException(message)
 }
 
 class Return(val value: Any?):
-RuntimeException(null, null, false, false)
+    RuntimeException(null, null, false, false)
 
 private class BreakException: RuntimeException()
 

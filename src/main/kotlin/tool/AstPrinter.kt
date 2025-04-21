@@ -4,7 +4,6 @@ import model.Expr
 import model.Stmt
 import model.Token
 
-
 class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
     fun print(stmt: Stmt?): String {
         return stmt?.accept(this) ?: ""
@@ -14,16 +13,16 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return expr?.accept(this) ?: ""
     }
 
-    override fun visitAssignExpr(expr: Expr.Assign): String? {
-        return parenthesize2( "=", expr.name?.lexeme, expr.value)
+    override fun visitAssignExpr(expr: Expr.Assign): String {
+        return parenthesize2( "=", expr.name.lexeme, expr.value)
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): String {
-        return parenthesize( expr.operator?.lexeme,
+        return parenthesize( expr.operator.lexeme,
             expr.left, expr.right)
     }
 
-    override fun visitCallExpr(expr: Expr.Call): String? {
+    override fun visitCallExpr(expr: Expr.Call): String {
         return parenthesize2("call", expr.callee, expr.arguments)
     }
 
@@ -36,19 +35,19 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return expr.value.toString()
     }
 
-    override fun visitLogicalExpr(expr: Expr.Logical): String? {
-        return parenthesize( expr.operator?.lexeme, expr.left, expr.right)
+    override fun visitLogicalExpr(expr: Expr.Logical): String {
+        return parenthesize( expr.operator.lexeme, expr.left, expr.right)
     }
 
     override fun visitUnaryExpr(expr: Expr.Unary): String {
-        return parenthesize( expr.operator?.lexeme, expr.right)
+        return parenthesize( expr.operator.lexeme, expr.right)
     }
 
-    override fun visitVariableExpr(expr: Expr.Variable): String? {
-        return expr.name?.lexeme
+    override fun visitVariableExpr(expr: Expr.Variable): String {
+        return expr.name.lexeme
     }
 
-    override fun visitBlockStmt(stmt: Stmt.Block): String? {
+    override fun visitBlockStmt(stmt: Stmt.Block): String {
         val sb = StringBuilder()
         sb.append("(block ")
 
@@ -60,34 +59,34 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return sb.toString()
     }
 
-    override fun visitBreakStmt(stmt: Stmt.Break): String? {
-        return "break"
+    override fun visitBreakStmt(stmt: Stmt.Break): String {
+        return "(break)"
     }
 
-    override fun visitExpressionStmt(stmt: Stmt.Expression): String? {
+    override fun visitExpressionStmt(stmt: Stmt.Expression): String {
         return parenthesize( ";", stmt.expression)
     }
 
-    override fun visitFunctionStmt(stmt: Stmt.Function): String? {
+    override fun visitFunctionStmt(stmt: Stmt.Function): String {
         val sb = java.lang.StringBuilder()
-        sb.append("(fun " + stmt.name?.lexeme + "(")
+        sb.append("(fun " + stmt.name.lexeme + "(")
 
         for (param in stmt.params) {
             if (param !== stmt.params[0]) sb.append(" ")
-            sb.append(param?.lexeme)
+            sb.append(param.lexeme)
         }
 
         sb.append(") ")
 
         for (body in stmt.body) {
-            sb.append(body?.accept(this))
+            sb.append(body.accept(this))
         }
 
         sb.append(")")
         return sb.toString()
     }
 
-    override fun visitIfStmt(stmt: Stmt.If): String? {
+    override fun visitIfStmt(stmt: Stmt.If): String {
         if (stmt.elseBranch == null) {
             return parenthesize2( "if", stmt.condition, stmt.thenBranch)
         }
@@ -96,16 +95,16 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
             stmt.elseBranch)
     }
 
-    override fun visitPrintStmt(stmt: Stmt.Print): String? {
+    override fun visitPrintStmt(stmt: Stmt.Print): String {
         return parenthesize( "print", stmt.expression)
     }
 
-    override fun visitReturnStmt(stmt: Stmt.Return): String? {
+    override fun visitReturnStmt(stmt: Stmt.Return): String {
         if (stmt.value == null) return "(return)"
         return parenthesize("return", stmt.value)
     }
 
-    override fun visitVarStmt(stmt: Stmt.Var): String? {
+    override fun visitVarStmt(stmt: Stmt.Var): String {
         if (stmt.initializer == null) {
             return parenthesize2( "var", stmt.name)
         }
@@ -113,7 +112,7 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return parenthesize2( "var", stmt.name, "=", stmt.initializer)
     }
 
-    override fun visitWhileStmt(stmt: Stmt.While): String? {
+    override fun visitWhileStmt(stmt: Stmt.While): String {
         return parenthesize2( "while", stmt.condition, stmt.body)
     }
 

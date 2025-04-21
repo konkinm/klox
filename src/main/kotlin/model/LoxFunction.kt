@@ -15,7 +15,7 @@ class LoxFunction(
     override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
         val environment = Environment(enclosing = closure)
         arguments.forEachIndexed { index, argument ->
-            environment.define(declaration.params[index]?.lexeme, argument)
+            environment.define(declaration.params[index].lexeme, argument)
         }
 
         try {
@@ -28,6 +28,6 @@ class LoxFunction(
     }
 
     override fun toString(): String {
-        return "<fn ${declaration.name?.lexeme}>"
+        return "<fn ${declaration.name.lexeme}>"
     }
 }

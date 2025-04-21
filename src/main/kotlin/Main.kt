@@ -57,8 +57,13 @@ fun evalProgram(source: String) {
 fun runProgram(source: String) {
     val scanner = Scanner(source)
     val tokens: List<Token> = scanner.scanTokens()
+    if (hadError) return
     val statements = Parser(tokens).parse()
-    Interpreter().interpret(statements)
+    if (hadError) return
+    val interpreter = Interpreter()
+    Resolver(interpreter).resolve(statements)
+    if (hadError) return
+    interpreter.interpret(statements)
 }
 
 fun syntaxError(line: Int, message: String) {
@@ -83,7 +88,7 @@ fun error(token: Token?, message: String) {
 }
 
 fun runtimeError(error: RuntimeError) {
-    System.err.println(error.message + "\n[line " + error.token?.line + "]")
+    System.err.println("[line ${error.token?.line}] ${error.message}")
     hadRuntimeError = true
 }
 
