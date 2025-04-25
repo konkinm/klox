@@ -2,6 +2,7 @@ import model.Expr
 import model.LoxCallable
 import model.LoxClass
 import model.LoxFunction
+import model.LoxInstance
 import model.Stmt
 import model.Token
 import model.TokenType.BANG
@@ -155,6 +156,13 @@ class Interpreter(
         return callee.call(this, arguments)
     }
 
+    override fun visitGetExpr(expr: Expr.Get): Any? {
+        val obj = evaluate(expr.obj)
+        if (obj is LoxInstance) return obj.get(expr.name)
+
+        throw RuntimeError(expr.name, "Only instances have properties.")
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
         return evaluate(expr.expression)
     }
@@ -173,6 +181,16 @@ class Interpreter(
         }
 
         return evaluate(expr.right)
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Any? {
+        val obj = evaluate(expr.obj)
+
+        if (obj !is LoxInstance) throw RuntimeError(expr.name, "Only instances have fields.")
+
+        val value = evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
     }
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
@@ -237,8 +255,14 @@ class Interpreter(
     }
 
     override fun visitClassStmt(stmt: Stmt.Class): Void? {
-        environment.define(stmt.name.lexeme, null);
-        val klass = LoxClass(stmt.name.lexeme)
+        environment.define(stmt.name.lexeme, null)
+
+        val methods: MutableMap<String, LoxFunction> = mutableMapOf()
+        for (method in stmt.methods) {
+            val function = LoxFunction(method, environment)
+            methods.put(method.name.lexeme, function)
+        }
+        val klass = LoxClass(stmt.name.lexeme, methods)
         environment.assign(stmt.name, klass)
         return null
     }

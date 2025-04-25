@@ -9,6 +9,7 @@ import java.util.Stack
 private enum class FunctionType {
     NONE,
     FUNCTION,
+    METHOD,
 }
 
 class Resolver(
@@ -38,7 +39,7 @@ class Resolver(
 
         if (scope.containsKey(name.lexeme)) {
             error(name,
-                "Already a variable with this name in this scope.");
+                "Already a variable with this name in this scope.")
         }
 
         scope.put(name.lexeme, false)
@@ -94,6 +95,10 @@ class Resolver(
     override fun visitClassStmt(stmt: Stmt.Class): Void? {
         declare(stmt.name)
         define(stmt.name)
+
+        for (method in stmt.methods) {
+            resolveFunction(method, FunctionType.METHOD)
+        }
         return null
     }
 
@@ -124,7 +129,7 @@ class Resolver(
 
     override fun visitReturnStmt(stmt: Stmt.Return): Void? {
         if (currentFunctionType == FunctionType.NONE) {
-            error(stmt.keyword, "Can't return from top-level code.");
+            error(stmt.keyword, "Can't return from top-level code.")
         }
 
         if (stmt.value != null) {
@@ -171,6 +176,11 @@ class Resolver(
         return null
     }
 
+    override fun visitGetExpr(expr: Expr.Get): Void? {
+        resolve(expr.obj)
+        return null
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): Void? {
         resolve(expr.expression)
         return null
@@ -183,6 +193,11 @@ class Resolver(
     override fun visitLogicalExpr(expr: Logical): Void? {
         resolve(expr.left)
         resolve(expr.right)
+        return null
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Void? {
+        resolve(expr.value)
         return null
     }
 

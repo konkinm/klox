@@ -8,6 +8,7 @@ import model.TokenType.BANG_EQUAL
 import model.TokenType.BREAK
 import model.TokenType.CLASS
 import model.TokenType.COMMA
+import model.TokenType.DOT
 import model.TokenType.ELSE
 import model.TokenType.EQUAL
 import model.TokenType.EQUAL_EQUAL
@@ -247,7 +248,12 @@ class Parser(val tokens: List<Token>) {
             val equals = previous()
             val value = assignment()
 
-            if (expr is Expr.Variable) return Expr.Assign(expr.name, value)
+            if (expr is Expr.Variable) {
+                return Expr.Assign(expr.name, value)
+            } else if (expr is Expr.Get) {
+                val get = expr
+                return Expr.Set(get.obj, get.name, value)
+            }
 
             error(equals, "Invalid assignment target.")
         }
@@ -345,6 +351,9 @@ class Parser(val tokens: List<Token>) {
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr)
+            } else if(match(DOT)) {
+                val name = consume(IDENTIFIER, "Expect property name after '.'.")
+                expr = Expr.Get(expr, name)
             } else break
         }
 
