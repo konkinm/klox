@@ -91,6 +91,12 @@ class Resolver(
         return null
     }
 
+    override fun visitClassStmt(stmt: Stmt.Class): Void? {
+        declare(stmt.name)
+        define(stmt.name)
+        return null
+    }
+
     override fun visitExpressionStmt(stmt: Stmt.Expression): Void? {
         resolve(stmt.expression)
         return null

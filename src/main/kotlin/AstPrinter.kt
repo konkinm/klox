@@ -61,6 +61,10 @@ class AstPrinter: Expr.Visitor<String>, Stmt.Visitor<String> {
         return "(break)"
     }
 
+    override fun visitClassStmt(stmt: Stmt.Class): String {
+        return "(class ${stmt.name})"
+    }
+
     override fun visitExpressionStmt(stmt: Stmt.Expression): String {
         return parenthesize( ";", stmt.expression)
     }

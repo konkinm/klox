@@ -1,5 +1,6 @@
 import model.Expr
 import model.LoxCallable
+import model.LoxClass
 import model.LoxFunction
 import model.Stmt
 import model.Token
@@ -233,6 +234,13 @@ class Interpreter(
 
     override fun visitBreakStmt(stmt: Stmt.Break): Void? {
         throw BreakException()
+    }
+
+    override fun visitClassStmt(stmt: Stmt.Class): Void? {
+        environment.define(stmt.name.lexeme, null);
+        val klass = LoxClass(stmt.name.lexeme)
+        environment.assign(stmt.name, klass)
+        return null
     }
 
     fun executeBlock(statements: List<Stmt?>, environment: Environment) {
