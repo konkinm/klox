@@ -36,6 +36,7 @@ import model.TokenType.SEMICOLON
 import model.TokenType.SLASH
 import model.TokenType.STAR
 import model.TokenType.STRING
+import model.TokenType.THIS
 import model.TokenType.TRUE
 import model.TokenType.VAR
 import model.TokenType.WHILE
@@ -251,8 +252,7 @@ class Parser(val tokens: List<Token>) {
             if (expr is Expr.Variable) {
                 return Expr.Assign(expr.name, value)
             } else if (expr is Expr.Get) {
-                val get = expr
-                return Expr.Set(get.obj, get.name, value)
+                return Expr.Set(expr.obj, expr.name, value)
             }
 
             error(equals, "Invalid assignment target.")
@@ -381,6 +381,8 @@ class Parser(val tokens: List<Token>) {
         if (match(NIL)) return Expr.Literal(null)
 
         if (match(NUMBER, STRING)) return Expr.Literal(previous().literal)
+
+        if (match(THIS)) return Expr.This(previous())
 
         if (match(IDENTIFIER)) return Expr.Variable(previous())
 
