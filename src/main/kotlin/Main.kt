@@ -1,6 +1,5 @@
 import model.Token
 import model.TokenType
-import tool.AstPrinter
 import java.io.File
 import kotlin.system.exitProcess
 

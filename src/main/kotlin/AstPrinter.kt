@@ -1,5 +1,3 @@
-package tool
-
 import model.Expr
 import model.Stmt
 import model.Token
