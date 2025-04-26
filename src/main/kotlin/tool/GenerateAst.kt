@@ -23,7 +23,7 @@ private val exprTypes = mapOf(
 private val stmtTypes = mapOf(
     "Block" to "val statements: List<Stmt>",
     "Break" to "val expr: Expr? = null",
-    "Class" to "val name: Token, val methods: List<Function>",
+    "Class" to "val name: Token, val superclass: Expr.Variable?, val methods: List<Function>",
     "Expression" to "val expression: Expr",
     "Function" to "val name: Token, val params: List<Token>, val body: List<Stmt>",
     "If" to "val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?",

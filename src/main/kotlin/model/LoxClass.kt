@@ -4,6 +4,7 @@ import Interpreter
 
 class LoxClass(
     val name: String,
+    val superclass: LoxClass?,
     val methods: MutableMap<String, LoxFunction>
 ): LoxCallable {
 
@@ -25,6 +26,6 @@ class LoxClass(
     }
 
     fun findMethod(name: String): LoxFunction? {
-        return methods[name]
+        return if (superclass != null) superclass.findMethod(name) else methods[name]
     }
 }
