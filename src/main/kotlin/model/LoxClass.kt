@@ -12,11 +12,15 @@ class LoxClass(
     }
 
     override fun arity(): Int {
-        return 0
+        val initializer = findMethod("init")
+
+        return initializer?.arity() ?: 0
     }
 
     override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
         val instance = LoxInstance(this)
+        val initializer = findMethod("init")
+        initializer?.bind(instance)?.call(interpreter, arguments)
         return instance
     }
 

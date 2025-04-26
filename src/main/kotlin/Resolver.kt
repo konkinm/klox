@@ -9,6 +9,7 @@ import java.util.Stack
 private enum class FunctionType {
     NONE,
     FUNCTION,
+    INITIALIZER,
     METHOD,
 }
 
@@ -109,7 +110,11 @@ class Resolver(
         scopes.peek().put("this", true)
 
         for (method in stmt.methods) {
-            resolveFunction(method, FunctionType.METHOD)
+
+            val declarationType = if (method.name.lexeme == "init")
+                FunctionType.INITIALIZER else FunctionType.METHOD
+
+            resolveFunction(method, declarationType)
         }
 
         endScope()
@@ -149,6 +154,9 @@ class Resolver(
         }
 
         if (stmt.value != null) {
+            if (currentFunctionType == FunctionType.INITIALIZER) {
+                error(stmt.keyword, "Can't return value from an initializer.")
+            }
             resolve(stmt.value)
         }
 
