@@ -23,7 +23,7 @@ class Interpreter(
     private val globals: Environment = defaultGlobalEnvironment,
     private val locals: MutableMap<Expr, Int> = HashMap(),
 ): Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
-    private var environment = globals
+    private var environment: Environment = globals
 
     fun interpret(statements: List<Stmt?>) {
         try {
@@ -35,7 +35,7 @@ class Interpreter(
         }
     }
 
-    fun interpret(expression: Expr?) {
+    fun interpret(expression: Expr) {
         try {
             val value = evaluate(expression)
             println(stringify(value))
@@ -73,7 +73,7 @@ class Interpreter(
     override fun visitAssignExpr(expr: Expr.Assign): Any? {
         val value = evaluate(expr.value)
 
-        val distance = locals.get(expr)
+        val distance = locals[expr]
         if (distance != null) {
             environment.assignAt(distance, expr.name, value)
         } else {
@@ -193,6 +193,19 @@ class Interpreter(
         return value
     }
 
+    override fun visitSuperExpr(expr: Expr.Super): Any? {
+        val distance = requireNotNull(locals[expr])
+        val superclass = environment.getAt(distance, "super") as? LoxClass
+
+        val obj = environment.getAt(distance - 1, "this") as? LoxInstance
+
+        val method = superclass?.findMethod(expr.method.lexeme)
+
+        if (method == null) RuntimeError(expr.method, "Undefined property '${expr.method.lexeme}'.")
+
+        return method?.bind(requireNotNull(obj))
+    }
+
     override fun visitThisExpr(expr: Expr.This): Any? {
         return lookUpVariable(expr.keyword, expr)
     }
@@ -217,11 +230,11 @@ class Interpreter(
     }
 
     private fun lookUpVariable(name: Token, expr: Expr?): Any? {
-        val distance = locals.get(expr)
-        if (distance != null) {
-            return environment.getAt(distance, name.lexeme)
+        val distance = locals[expr]
+        return if (distance != null) {
+            environment.getAt(distance, name.lexeme)
         } else {
-            return globals.getByToken(name)
+            globals.getByToken(name)
         }
     }
 
@@ -245,8 +258,8 @@ class Interpreter(
         return true
     }
 
-    private fun evaluate(expression: Expr?): Any? {
-        return expression?.accept(this)
+    private fun evaluate(expression: Expr): Any? {
+        return expression.accept(this)
     }
 
     override fun visitBlockStmt(stmt: Stmt.Block): Void? {
@@ -268,6 +281,11 @@ class Interpreter(
         }
         environment.define(stmt.name.lexeme, null)
 
+        if (stmt.superclass != null) {
+            environment = Environment(enclosing = environment)
+            environment.define("super", superclass)
+        }
+
         val methods: MutableMap<String, LoxFunction> = mutableMapOf()
         for (method in stmt.methods) {
             val function = LoxFunction(method, environment,
@@ -275,7 +293,10 @@ class Interpreter(
             methods.put(method.name.lexeme, function)
         }
 
-        val klass = LoxClass(stmt.name.lexeme, superclass as? LoxClass, methods)
+        val klass = LoxClass(stmt.name.lexeme, superclass as LoxClass?, methods)
+
+        if (superclass != null) environment = requireNotNull(environment.enclosing)
+
         environment.assign(stmt.name, klass)
         return null
     }

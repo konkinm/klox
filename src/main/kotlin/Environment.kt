@@ -1,6 +1,6 @@
 import model.Token
 
-data class Environment(
+class Environment(
     val values: MutableMap<String, Any?> = mutableMapOf(),
     val enclosing: Environment? = null,
 ) {
@@ -18,7 +18,7 @@ data class Environment(
         return environment
     }
 
-    fun getAt(distance: Int, name: String?): Any? {
+    fun getAt(distance: Int, name: String): Any? {
         return ancestor(distance)?.values?.get(name)
     }
 

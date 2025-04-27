@@ -36,6 +36,7 @@ import model.TokenType.SEMICOLON
 import model.TokenType.SLASH
 import model.TokenType.STAR
 import model.TokenType.STRING
+import model.TokenType.SUPER
 import model.TokenType.THIS
 import model.TokenType.TRUE
 import model.TokenType.VAR
@@ -90,7 +91,7 @@ class Parser(val tokens: List<Token>) {
             superclass = Expr.Variable(previous())
         }
 
-        consume(LEFT_BRACE, "Expect '{' before class  body.")
+        consume(LEFT_BRACE, "Expect '{' before class body.")
 
         val methods: MutableList<Stmt.Function> = mutableListOf()
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
@@ -358,10 +359,12 @@ class Parser(val tokens: List<Token>) {
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr)
-            } else if(match(DOT)) {
+            } else if (match(DOT)) {
                 val name = consume(IDENTIFIER, "Expect property name after '.'.")
                 expr = Expr.Get(expr, name)
-            } else break
+            } else {
+                break
+            }
         }
 
         return expr
@@ -388,6 +391,13 @@ class Parser(val tokens: List<Token>) {
         if (match(NIL)) return Expr.Literal(null)
 
         if (match(NUMBER, STRING)) return Expr.Literal(previous().literal)
+
+        if (match(SUPER)) {
+            val keyword = previous()
+            consume(DOT, "Expect '.' after 'super'.")
+            val method = consume(IDENTIFIER, "Expect superclass method name.")
+            return Expr.Super(keyword, method)
+        }
 
         if (match(THIS)) return Expr.This(previous())
 

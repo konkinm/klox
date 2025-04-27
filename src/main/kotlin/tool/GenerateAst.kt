@@ -15,6 +15,7 @@ private val exprTypes = mapOf(
     "Literal" to "val value: Any?",
     "Logical" to "val left: Expr, val operator: Token, val right: Expr",
     "Set" to "val obj: Expr, val name: Token, val value: Expr",
+    "Super" to "val keyword: Token, val method: Token",
     "This" to "val keyword: Token",
     "Unary" to "val operator: Token, val right: Expr",
     "Variable" to "val name: Token",

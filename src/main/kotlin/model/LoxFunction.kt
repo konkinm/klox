@@ -26,7 +26,6 @@ class LoxFunction(
 
             return returnValue.value
         }
-
         if (isInitializer) return closure.getAt(0, "this")
 
         return null

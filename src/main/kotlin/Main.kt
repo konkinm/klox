@@ -50,7 +50,7 @@ fun evalProgram(source: String) {
     val scanner = Scanner(source)
     val tokens: List<Token> = scanner.scanTokens()
     val expression = Parser(tokens).parseSingleExpression()
-    Interpreter().interpret(expression)
+    if (expression != null) Interpreter().interpret(expression)
 }
 
 fun runProgram(source: String) {
