@@ -1,4 +1,4 @@
-name: Java CI with Maven and Python
+name: klox build and test
 
 on:
   push:
@@ -20,9 +20,6 @@ jobs:
           cache: maven
       - name: Build with Maven
         run: mvn -B package --file pom.xml
-#      - name: Make jar executable
-#        run: chmod +x ./target/klox.jar
-
       - name: Set up Python 3.13
         uses: actions/setup-python@v3
         with:
