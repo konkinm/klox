@@ -172,7 +172,7 @@ class Resolver(
 
         if (stmt.value != null) {
             if (currentFunctionType == FunctionType.INITIALIZER) {
-                error(stmt.keyword, "Can't return value from an initializer.")
+                error(stmt.keyword, "Can't return a value from an initializer.")
             }
             resolve(stmt.value)
         }
