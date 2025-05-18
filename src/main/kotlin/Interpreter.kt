@@ -195,15 +195,15 @@ class Interpreter(
 
     override fun visitSuperExpr(expr: Expr.Super): Any? {
         val distance = requireNotNull(locals[expr])
-        val superclass = environment.getAt(distance, "super") as? LoxClass
+        val superclass = environment.getAt(distance, "super") as LoxClass?
 
-        val obj = environment.getAt(distance - 1, "this") as? LoxInstance
+        val obj = environment.getAt(distance - 1, "this") as LoxInstance?
 
         val method = superclass?.findMethod(expr.method.lexeme)
 
-        if (method == null) RuntimeError(expr.method, "Undefined property '${expr.method.lexeme}'.")
+        if (method == null) throw RuntimeError(expr.method, "Undefined property '${expr.method.lexeme}'.")
 
-        return method?.bind(requireNotNull(obj))
+        return method.bind(requireNotNull(obj))
     }
 
     override fun visitThisExpr(expr: Expr.This): Any? {
