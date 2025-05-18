@@ -1,5 +1,5 @@
 # klox
-Lox language interpreter in Kotlin (Following ["Crafting Interpreters"](http://www.craftinginterpreters.com/))
+Lox language interpreter in Kotlin (Following ["Crafting Interpreters"](http://www.craftinginterpreters.com/) book).
 
 ## Syntax Grammar
 ```
@@ -79,3 +79,16 @@ IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
 ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
 DIGIT          → "0" ... "9" ;
 ```
+---
+
+## Test suite usage
+
+Requirements: Python >=3.13.3, JDK 21
+
+1. Build klox: `mvn -B package`
+2. Go to *testSuite* folder
+3. Run `python generate.py`
+4. Run `pytest --lox "java -jar ../target/klox.jar run"
+`
+
+Acknowledge: test suite borrowed from [this](https://github.com/montreal91/kind-kestrel) repo and modified a bit.
