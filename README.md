@@ -1,5 +1,5 @@
 # klox
-Lox language interpreter in Kotlin
+Lox language interpreter in Kotlin (Following ["Crafting Interpreters"](http://www.craftinginterpreters.com/))
 
 ## Syntax Grammar
 ```
@@ -27,7 +27,8 @@ statement      → exprStmt
 | printStmt
 | returnStmt
 | whileStmt
-| block ;
+| block 
+| break ;
 
 exprStmt       → expression ";" ;
 forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
@@ -39,6 +40,7 @@ printStmt      → "print" expression ";" ;
 returnStmt     → "return" expression? ";" ;
 whileStmt      → "while" "(" expression ")" statement ;
 block          → "{" declaration* "}" ;
+break          -> "break" ";" ;
 ```
 
 ### Expressions
