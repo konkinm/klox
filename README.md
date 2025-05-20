@@ -83,7 +83,7 @@ DIGIT          → "0" ... "9" ;
 
 ## Test suite usage
 
-Requirements: Python >=3.13.3, JDK 21
+Requirements: Python >=3.11.9, JDK 21
 
 1. Build klox: `mvn -B package`
 2. Go to *testSuite* folder

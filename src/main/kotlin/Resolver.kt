@@ -22,7 +22,7 @@ private enum class ClassType {
 class Resolver(
     private val interpreter: Interpreter,
     private val scopes: Stack<MutableMap<String, Boolean>> = Stack<MutableMap<String, Boolean>>(),
-): Expr.Visitor<Void?>, Stmt.Visitor<Void?> {
+) : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     private var currentFunctionType = FunctionType.NONE
     private var currentClassType = ClassType.NONE
 
@@ -46,8 +46,7 @@ class Resolver(
         val scope: MutableMap<String, Boolean> = scopes.peek()
 
         if (scope.containsKey(name.lexeme)) {
-            error(name,
-                "Already a variable with this name in this scope.")
+            error(name, "Already a variable with this name in this scope.")
         }
 
         scope.put(name.lexeme, false)
@@ -89,18 +88,16 @@ class Resolver(
         currentFunctionType = enclosingFunctionType
     }
 
-    override fun visitBlockStmt(stmt: Stmt.Block): Void? {
+    override fun visitBlockStmt(stmt: Stmt.Block) {
         beginScope()
         resolve(stmt.statements)
         endScope()
-        return null
     }
 
-    override fun visitBreakStmt(stmt: Stmt.Break): Void? {
-        return null
+    override fun visitBreakStmt(stmt: Stmt.Break) {
     }
 
-    override fun visitClassStmt(stmt: Stmt.Class): Void? {
+    override fun visitClassStmt(stmt: Stmt.Class) {
         val enclosingClassType = currentClassType
         currentClassType = ClassType.CLASS
 
@@ -137,35 +134,30 @@ class Resolver(
         if (stmt.superclass != null) endScope()
 
         currentClassType = enclosingClassType
-        return null
     }
 
-    override fun visitExpressionStmt(stmt: Stmt.Expression): Void? {
+    override fun visitExpressionStmt(stmt: Stmt.Expression) {
         resolve(stmt.expression)
-        return null
     }
 
-    override fun visitFunctionStmt(stmt: Stmt.Function): Void? {
+    override fun visitFunctionStmt(stmt: Stmt.Function) {
         declare(stmt.name)
         define(stmt.name)
 
         resolveFunction(stmt, FunctionType.FUNCTION)
-        return null
     }
 
-    override fun visitIfStmt(stmt: Stmt.If): Void? {
+    override fun visitIfStmt(stmt: Stmt.If) {
         resolve(stmt.condition)
         resolve(stmt.thenBranch)
         if (stmt.elseBranch != null) resolve(stmt.elseBranch)
-        return null
     }
 
-    override fun visitPrintStmt(stmt: Stmt.Print): Void? {
+    override fun visitPrintStmt(stmt: Stmt.Print) {
         resolve(stmt.expression)
-        return null
     }
 
-    override fun visitReturnStmt(stmt: Stmt.Return): Void? {
+    override fun visitReturnStmt(stmt: Stmt.Return) {
         if (currentFunctionType == FunctionType.NONE) {
             error(stmt.keyword, "Can't return from top-level code.")
         }
@@ -176,74 +168,61 @@ class Resolver(
             }
             resolve(stmt.value)
         }
-
-        return null
     }
 
-    override fun visitVarStmt(stmt: Stmt.Var): Void? {
+    override fun visitVarStmt(stmt: Stmt.Var) {
         declare(stmt.name)
         if (stmt.initializer != null) {
             resolve(stmt.initializer)
         }
         define(stmt.name)
-        return null
     }
 
-    override fun visitWhileStmt(stmt: While): Void? {
+    override fun visitWhileStmt(stmt: While) {
         resolve(stmt.condition)
         resolve(stmt.body)
-        return null
     }
 
-    override fun visitAssignExpr(expr: Assign): Void? {
+    override fun visitAssignExpr(expr: Assign) {
         resolve(expr.value)
         resolveLocal(expr, expr.name)
-        return null
     }
 
-    override fun visitBinaryExpr(expr: Expr.Binary): Void? {
+    override fun visitBinaryExpr(expr: Expr.Binary) {
         resolve(expr.left)
         resolve(expr.right)
-        return null
     }
 
-    override fun visitCallExpr(expr: Expr.Call): Void? {
+    override fun visitCallExpr(expr: Expr.Call) {
         resolve(expr.callee)
 
         for (argument in expr.arguments) {
             resolve(argument)
         }
-
-        return null
     }
 
-    override fun visitGetExpr(expr: Expr.Get): Void? {
+    override fun visitGetExpr(expr: Expr.Get) {
         resolve(expr.obj)
-        return null
     }
 
-    override fun visitGroupingExpr(expr: Expr.Grouping): Void? {
+    override fun visitGroupingExpr(expr: Expr.Grouping) {
         resolve(expr.expression)
-        return null
     }
 
-    override fun visitLiteralExpr(expr: Expr.Literal): Void? {
-        return null
+    override fun visitLiteralExpr(expr: Expr.Literal) {
     }
 
-    override fun visitLogicalExpr(expr: Logical): Void? {
+    override fun visitLogicalExpr(expr: Logical) {
         resolve(expr.left)
         resolve(expr.right)
-        return null
     }
 
-    override fun visitSetExpr(expr: Expr.Set): Void? {
+    override fun visitSetExpr(expr: Expr.Set) {
         resolve(expr.value)
         resolve(expr.obj)
-        return null
     }
 
-    override fun visitSuperExpr(expr: Expr.Super): Void? {
+    override fun visitSuperExpr(expr: Expr.Super) {
         if (currentClassType == ClassType.NONE) {
             error(expr.keyword, "Can't use 'super' outside of a class.")
         } else if (currentClassType != ClassType.SUBCLASS) {
@@ -251,24 +230,22 @@ class Resolver(
         }
 
         resolveLocal(expr, expr.keyword)
-        return null
     }
 
-    override fun visitThisExpr(expr: Expr.This): Void? {
+    override fun visitThisExpr(expr: Expr.This) {
         if (currentClassType == ClassType.NONE) {
             error(expr.keyword, "Can't use 'this' outside of a class.")
         }
 
         resolveLocal(expr, expr.keyword)
-        return null
+
     }
 
-    override fun visitUnaryExpr(expr: Expr.Unary): Void? {
+    override fun visitUnaryExpr(expr: Expr.Unary) {
         resolve(expr.right)
-        return null
     }
 
-    override fun visitVariableExpr(expr: Expr.Variable): Void? {
+    override fun visitVariableExpr(expr: Expr.Variable) {
         if (!scopes.isEmpty() &&
             scopes.peek().get(expr.name.lexeme) == java.lang.Boolean.FALSE
         ) {
@@ -279,7 +256,6 @@ class Resolver(
         }
 
         resolveLocal(expr, expr.name)
-        return null
     }
 
 }

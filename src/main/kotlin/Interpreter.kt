@@ -22,7 +22,7 @@ import model.TokenType.STAR
 class Interpreter(
     private val globals: Environment = defaultGlobalEnvironment,
     private val locals: MutableMap<Expr, Int> = HashMap(),
-): Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
+) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     private var environment: Environment = globals
 
     fun interpret(statements: List<Stmt?>) {
@@ -92,14 +92,17 @@ class Interpreter(
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) - (right as Double)
             }
+
             SLASH -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) / (right as Double)
             }
+
             STAR -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) * (right as Double)
             }
+
             PLUS -> {
                 if (left is Double && right is Double) {
                     return left + right
@@ -111,28 +114,35 @@ class Interpreter(
 
                 throw RuntimeError(expr.operator, "Operands must be two numbers or two strings.")
             }
+
             GREATER -> {
                 checkNumberOperands(expr.operator, left, right)
                 return left as Double > right as Double
             }
+
             GREATER_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) >= (right as Double)
             }
+
             LESS -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) < (right as Double)
             }
+
             LESS_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right)
                 return (left as Double) <= (right as Double)
             }
+
             BANG_EQUAL -> {
                 return !isEqual(left, right)
             }
+
             EQUAL_EQUAL -> {
                 return isEqual(left, right)
             }
+
             else -> null
         }
 
@@ -218,6 +228,7 @@ class Interpreter(
                 checkNumberOperand(expr.operator, right)
                 return -(right as Double)
             }
+
             BANG -> return !isTruthy(right)
             else -> null
         }
@@ -262,16 +273,15 @@ class Interpreter(
         return expression.accept(this)
     }
 
-    override fun visitBlockStmt(stmt: Stmt.Block): Void? {
+    override fun visitBlockStmt(stmt: Stmt.Block) {
         executeBlock(stmt.statements, Environment(enclosing = environment))
-        return null
     }
 
-    override fun visitBreakStmt(stmt: Stmt.Break): Void? {
+    override fun visitBreakStmt(stmt: Stmt.Break) {
         throw BreakException()
     }
 
-    override fun visitClassStmt(stmt: Stmt.Class): Void? {
+    override fun visitClassStmt(stmt: Stmt.Class) {
         var superclass: Any? = null
         if (stmt.superclass != null) {
             superclass = evaluate(stmt.superclass)
@@ -288,8 +298,10 @@ class Interpreter(
 
         val methods: MutableMap<String, LoxFunction> = mutableMapOf()
         for (method in stmt.methods) {
-            val function = LoxFunction(method, environment,
-                method.name.lexeme == "init")
+            val function = LoxFunction(
+                method, environment,
+                method.name.lexeme == "init"
+            )
             methods.put(method.name.lexeme, function)
         }
 
@@ -298,7 +310,6 @@ class Interpreter(
         if (superclass != null) environment = requireNotNull(environment.enclosing)
 
         environment.assign(stmt.name, klass)
-        return null
     }
 
     fun executeBlock(statements: List<Stmt?>, environment: Environment) {
@@ -314,65 +325,60 @@ class Interpreter(
         }
     }
 
-    override fun visitExpressionStmt(stmt: Stmt.Expression): Void? {
+    override fun visitExpressionStmt(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
-        return null
     }
 
-    override fun visitFunctionStmt(stmt: Stmt.Function): Void? {
+    override fun visitFunctionStmt(stmt: Stmt.Function) {
         val function = LoxFunction(stmt, environment, false)
         environment.define(stmt.name.lexeme, function)
-        return null
     }
 
-    override fun visitIfStmt(stmt: Stmt.If): Void? {
+    override fun visitIfStmt(stmt: Stmt.If) {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch)
         } else if (stmt.elseBranch != null)
             execute(stmt.elseBranch)
-        return null
     }
 
-    override fun visitPrintStmt(stmt: Stmt.Print): Void? {
+    override fun visitPrintStmt(stmt: Stmt.Print) {
         val value = evaluate(stmt.expression)
         println(stringify(value))
-        return null
     }
 
-    override fun visitReturnStmt(stmt: Stmt.Return): Void? {
+    override fun visitReturnStmt(stmt: Stmt.Return) {
         var value: Any? = null
         if (stmt.value != null) value = evaluate(stmt.value)
 
         throw Return(value)
     }
 
-    override fun visitVarStmt(stmt: Stmt.Var): Void? {
+    override fun visitVarStmt(stmt: Stmt.Var) {
         var value: Any? = null
         if (stmt.initializer != null) value = evaluate(stmt.initializer)
 
         environment.define(stmt.name.lexeme, value)
-        return null
     }
 
-    override fun visitWhileStmt(stmt: Stmt.While): Void? {
+    override fun visitWhileStmt(stmt: Stmt.While) {
         try {
             while (isTruthy(evaluate(stmt.condition))) execute(stmt.body)
-        } catch (_: BreakException) {}
-        return null
+        } catch (_: BreakException) {
+        }
     }
 }
 
-class RuntimeError(operator: Token?, message: String): RuntimeException(message) {
+class RuntimeError(operator: Token?, message: String) : RuntimeException(message) {
     val token = operator
 }
 
-class Return(val value: Any?):
+class Return(val value: Any?) :
     RuntimeException(null, null, false, false)
 
-private class BreakException: RuntimeException()
+private class BreakException : RuntimeException()
 
 private val defaultGlobalEnvironment = Environment().apply {
-    define("clock", object: LoxCallable {
+    define("clock", object : LoxCallable {
         override fun arity(): Int = 0
 
         override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
